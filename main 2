@@ -1,0 +1,247 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <locale.h>
+#include <ctype.h>
+#include <string.h>
+#include <time.h>
+
+typedef struct Socio
+{
+
+    char dni[20];
+    char nombre[30];
+    char nacimiento[50];
+    char direccion[50] ;
+    int telefono;
+
+} tRegSocio;
+
+typedef struct Peliculas
+{
+
+    char clave[4];
+    char titulo[20];
+    char director[30];
+    char estreno[40];
+
+} tRegPelicula;
+
+
+//Menu
+void gestionSocios();
+void gestionPeliculas();
+
+//GESTION SOCIO
+void altaSocio(tRegSocio socios[], int *contadorSocios);
+
+
+
+
+int main()
+{
+    tRegSocio socios[50];
+    tRegPelicula peliculas[200];
+
+    int contadorSocios=0;
+
+    int opcion;
+
+    do
+    {
+
+        printf("\n\t\t MENU PRINCIPAL");
+        printf("\n\n\t1.-Gestion de Socios");
+        printf("\n\t2.-Gestion de Peliculas");
+        printf("\n\t0.-Salir");
+        printf("\n\t Elija opcion: ");
+        scanf("%i", &opcion);
+        system("cls");
+
+
+        switch(opcion)
+        {
+        case 1:
+            gestionSocios();
+
+            break;
+
+        case 2:
+            gestionPeliculas();
+            break;
+
+        case 0:
+            break;
+
+        }
+    }
+    while (opcion !=0 );
+
+    return 0;
+}
+
+void gestionSocios(tRegSocio socios[], int *contadorSocios)
+{
+
+    int opcion2;
+
+    do
+    {
+        printf("\n\t\t GESTION SOCIOS");
+        printf("\n\n\t1.-Alta");
+        printf("\n\t2.-Baja");
+        printf("\n\t3.-Modificacion");
+        printf("\n\t4.-Importar socios");
+        printf("\n\t5.-Listados socios");
+        printf("\n\n\t0.-Volver al menu principal");
+        printf("\n\t Elija opcion: ");
+        fflush(stdin);
+        scanf("%i", &opcion2);
+        printf("prueba");
+
+        system("cls");
+
+        switch (opcion2)
+        {
+        case 1:
+            altaSocio(socios, &contadorSocios);
+            break;
+        case 2:
+            printf("baja");
+            break;
+        case 3:
+            printf("modificacion");
+            break;
+        case 4:
+            printf("importar socio");
+            break;
+        case 5:
+            printf("listado socios");
+            break;
+        case 0:
+            break;
+        }
+    }
+    while (opcion2 !=0);
+    getchar();
+}
+
+void gestionPeliculas()
+{
+
+    int opcion3;
+
+    do
+    {
+        printf("\n\t\t GESTION PELICULAS");
+        printf("\n\n\t1.-Importar peliculas");
+        printf("\n\t2.-Mostrar datos de una pelicula");
+        printf("\n\t3.-Prestamo");
+        printf("\n\t4.-Devolucion");
+        printf("\n\t5.-Listados Peliculas");
+        printf("\n\n\t0.-Volver al menu principal");
+        printf("\n\t Elija opcion: ");
+        scanf("%i", &opcion3);
+        system("cls");
+
+        switch(opcion3)
+        {
+        case 1:
+            printf("importar peli ");
+            break;
+        case 2:
+            printf("datos peli");
+            break;
+        case 3:
+            printf("prestamo");
+            break;
+        case 4:
+            printf("devolucion");
+            break;
+        case 5:
+            printf("listado pelis");
+            break;
+        case 0:
+            break;
+        }
+    }
+    while (opcion3 !=0);
+}
+
+
+void altaSocio(tRegSocio socios[], int *contadorSocios)
+{
+
+    int i=0,cont=0;
+    char opc;
+    FILE *fich;
+
+
+    printf("Introduzca el DNI:");
+    fflush(stdin);
+    fgets(socios[*contadorSocios].dni,20,stdin);
+
+
+    if(isalpha(socios[*contadorSocios].dni[8]))
+    {
+        cont++;
+    }
+    for(i; i<=7; i++)
+    {
+        if(isdigit(socios[*contadorSocios].dni[i]))
+        {
+            cont++;
+        }
+    }
+
+    if(cont==9)
+    {
+        printf("formato correcto\n\n");
+        fflush(stdin);
+        while(opc!= 'S' || opc!= 'N')
+
+        {
+            socios[*contadorSocios].dni[strcspn(socios[*contadorSocios].dni, "\n")] = 0;
+            printf("Es correcto el DNI %s? S/N ",socios[*contadorSocios].dni);
+            scanf("%c",&opc);
+            if(opc=='S')
+            {
+
+                socios[*contadorSocios].dni[strcspn(socios[*contadorSocios].dni, "\n")] = 0;
+                printf("Introduzca  nombre y apellidos:");
+                fflush(stdin);
+                fgets(socios[*contadorSocios].nombre,50,stdin);
+                socios[*contadorSocios].nombre[strcspn(socios[*contadorSocios].nombre, "\n")] = 0; //Para que fgets no de salto de linea//
+                printf("\n Indroduzca el telefono:");
+                fflush(stdin);
+                scanf("%i",&socios[*contadorSocios].telefono);
+                printf("\n Introduzca la fecha (formato dd/mm/aaaa):");
+                fflush(stdin);
+                scanf("%i",&socios[*contadorSocios].nacimiento);
+
+
+                fich = fopen("NuevoSoc.txt","a");
+                fprintf(fich,"%-12s%-20s%-15i%-12i\n",socios[*contadorSocios].dni,socios[*contadorSocios].nombre,socios[*contadorSocios].telefono,socios[*contadorSocios].nacimiento);
+                fclose(fich);
+
+                system("pause");
+                gestionSocios(socios,&contadorSocios);
+            }
+            else if(opc=='N')
+            {
+                altaSocio(socios, &contadorSocios);
+            }
+            else
+            {
+                printf("\nPresione S o N");
+                system("pause");
+            }
+        }
+
+    }
+    else
+    {
+        printf("formato incorrecto, por favor introduzca un DNI valido");
+        system("pause");
+    }
+
+}
