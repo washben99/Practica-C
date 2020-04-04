@@ -1,0 +1,668 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <locale.h>
+#include <string.h>
+
+#define MAX_SOCIO 50
+#define MAX_PPELICULAS 200
+#define MAX_PRESTAMO 4
+
+typedef struct fecha{
+    int dia;
+    int mes;
+    int anno;
+}tRegFecha;
+
+typedef struct direccion{
+    char calle[30];
+    char ciudad[20];
+    int numero;
+
+}tRegDireccion;
+
+typedef struct disponibilidad{
+    int disponible;//0 est diponible, 1 no esta diponible
+    char DNI[10];
+    tRegFecha Fech_Prestamo;
+
+}tRegDisponibilidad;
+
+typedef struct auxSocio {
+    char DNI[10];
+    char nombre[30];
+    char apellidos[50];
+    char telefono[10];
+    int pelis_prestadas[MAX_PRESTAMO];
+    tRegFecha Fecha_Nac;
+    char calle[30];
+    char ciudad[30];
+    int numDirecc;
+
+
+}tRegAuxSocio;
+
+typedef struct auxPelicula {
+    char ID[4];
+    char titulo[20];
+    char diector[20];
+    int Anno_Estreno;
+    tRegDisponibilidad disponible[1];
+
+}tRegPelicula;
+
+typedef struct socios{
+    tRegAuxSocio auxSocio[50];
+    int numSocios;
+}tRegSocios;
+
+typedef struct pelis{
+    tRegPelicula peliculas[200];
+    int num_pelis;
+
+}tRegPelis;
+
+
+
+
+
+
+int menuPrincipal();
+int menuGest_Socio();
+int menuList_Socio();
+
+
+void Espera();
+void mostrar_socios(tRegSocios socios,int posicion);
+int Formato_DNI(char DNI[10]);
+int encontrar_socios(char DNI[10],tRegSocios socios,int numSocios);
+
+
+void guardarDatosSocios(tRegSocios socios,FILE *fichSocios);
+void guardarSociosTexto(tRegSocios socios,FILE *fichNuevoSoce,char texto[300] );
+
+void Opcion_1(tRegSocios socios,FILE *fichNuevoSoc,FILE *fichSocios,FILE *fichImporSocios,int *numSocios);
+void altaSocio(tRegSocios socios,FILE *fichNuevoSoc,FILE *fichSocios,int *numSocios);
+void modificacionSocio(tRegSocios socios,FILE *fichSocios,int numSocios);
+void importarSocios(tRegSocios socios,FILE *fichImporSocios,FILE *fichNuevoSoc,FILE *fichSociosint,int *numSocios);
+
+
+
+int main()
+{
+    tRegSocios socios;
+    int opcion,numSocios=0;
+    FILE *fichSocios;
+    FILE *fichNuevoSoc;
+    FILE *fichImporSocios;
+
+
+    fichNuevoSoc=fopen("nuevoSoc.txt","a+"); //porque ya lo tengo creado
+    if(fichNuevoSoc == NULL){
+        printf("\nERROR: Imposible crear el fichero  \n");
+        exit(EXIT_FAILURE);
+    }
+    fflush(fichNuevoSoc);
+    fclose(fichNuevoSoc);
+
+    fichImporSocios=fopen("Socios.txt","r");
+    if(fichImporSocios==NULL){
+        printf("\nERROR: Imposible crear el fichero  \n");
+        exit(EXIT_FAILURE);
+    }
+    fflush(fichNuevoSoc);
+    fclose(fichNuevoSoc);
+
+
+    fichSocios=fopen("nuevoSoc.dat","rb");
+    if(fichSocios == NULL){
+        printf("\nERROR: Imposible crear el fichero  \n");
+        exit(EXIT_FAILURE);
+    }
+    fread(&socios,sizeof(tRegSocios),1,fichSocios);
+    fclose(fichSocios);
+    numSocios=socios.numSocios;
+
+    do{
+        do{
+            printf("EL NUEMERO DE SOCIOS ES: %i",numSocios);
+            Espera();
+            opcion=menuPrincipal();
+        }while((opcion<0)||(opcion>2));
+        switch (opcion)
+        {
+            case 1:
+                Opcion_1(socios,fichNuevoSoc,fichSocios,fichImporSocios,&numSocios);
+                break;
+            case 2:
+                break;
+            case 0:
+                printf("\n\t Hasta la proxima vez");
+                socios.numSocios=numSocios;
+                guardarDatosSocios(socios,fichSocios);
+                break;
+        }
+    }while(opcion !=0);
+
+}
+
+
+void  Espera(){
+
+    printf("\n\n\t\t Pulse ENTER para continuar\t");
+    fflush(stdin);
+    getchar();
+    system ("cls");
+}
+
+
+
+
+void guardarDatosSocios(tRegSocios socios,FILE *fichSocios){
+
+    fichSocios=fopen("nuevoSoc.dat","wb");
+    if(fichSocios == NULL){
+        printf("\nERROR: Imposible crear el fichero  \n");
+        exit(EXIT_FAILURE);
+    }
+    fwrite(&socios,sizeof(tRegSocios),1, fichSocios);
+    fflush(fichSocios);
+    fclose(fichSocios);
+
+}
+
+
+void guardarSociosTexto(tRegSocios socios,FILE *fichNuevoSoc,char texto[300]){
+    fichNuevoSoc=fopen("nuevoSoc.txt","a");
+    if(fichNuevoSoc == NULL){
+        printf("\nERROR: Imposible crear el fichero  \n");
+        exit(EXIT_FAILURE);
+    }
+    fputs(texto,fichNuevoSoc);
+    fclose(fichNuevoSoc);
+
+}
+int menuPrincipal(){
+    int opcion;
+
+    system("cls");
+    printf("\n\t\t MENU PRINCIPAL \n");
+    printf("\t-------------------------\n");
+    printf("\n\t 1-Gestion de Socios ");
+    printf("\n\t 2-Gestion de Peliculas");
+    printf("\n\t 0-Salir");
+    printf("\n\n\t Elije una opcion\t");
+    scanf("%i", &opcion);
+
+
+    return (opcion);
+}
+
+
+int menuGest_Socio(){
+    int opcion;
+
+    system("cls");
+
+    printf("\n\t\t GESTION SOCIOS \n");
+    printf("\t-------------------------\n");
+    printf("\n\t 1-Alta de socio ");
+    printf("\n\t 2-Baja de socio");
+    printf("\n\t 3-Modificacion de un socio ");
+    printf("\n\t 4-Importar socio");
+    printf("\n\t 5-listado de socios");
+    printf("\n\t 0-Salir");
+    printf("\n\n\t Elije una opcion\t");
+    scanf("%i", &opcion);
+
+
+    return (opcion);
+}
+
+int menuList_Socio(){
+    int opcion;
+
+    system("cls");
+    printf("\n\t\t GESTION SOCIOS \n");
+    printf("\t-------------------------\n");
+    printf("\n\t Menu Listado Socios\n");
+    printf("\n\t 1-Listado General ");
+    printf("\n\t 2-Listado de nuevos socios");
+    printf("\n\t 3-Listado de socios que tiene prestamos ");
+    printf("\n\t 4-listado de socios dados de baja");
+    printf("\n\t 0-Salir");
+    printf("\n\n\t Elije una opcion\t");
+    scanf("%i", &opcion);
+
+
+    return (opcion);
+}
+
+
+
+void Opcion_1(tRegSocios socios,FILE *fichNuevoSoc,FILE *fichSocios,FILE *fichImporSocios,int *numSocios){
+    int opcion,opcion1;
+
+    do{
+        opcion=menuGest_Socio();
+        switch(opcion)
+        {
+            case 1:
+                altaSocio(socios,fichNuevoSoc,fichSocios,numSocios);
+                break;
+            case 2:
+                break;
+            case 3:
+                modificacionSocio(socios,fichSocios,numSocios);
+                break;
+            case 4:
+                importarSocios(socios,fichImporSocios,fichNuevoSoc,fichSocios,numSocios);
+                break;
+            case 5:
+                do{
+                    opcion1=menuList_Socio();
+                    switch(opcion1)
+                    {
+                        case 1:
+                            break;
+                        case 2:
+                            break;
+                        case 3:
+                            break;
+                        case 4:
+                            break;
+                    }
+                }while(0!=opcion1);
+                break;
+        }
+    }while(opcion!=0);
+}
+
+
+
+
+void mostrar_socios(tRegSocios socios,int posicion){
+
+    printf("\n\t\t DATOS SOCIO");
+    printf("\n\t 0- DNI : \t %s", socios.auxSocio[posicion].DNI);
+    printf("\n\t 1- Nombre : \t %s", socios.auxSocio[posicion].nombre);
+    printf("\n\t 2- Apellidos : \t %s", socios.auxSocio[posicion].apellidos);
+    printf("\n\t 3- Telefono : \t %s" , socios.auxSocio[posicion].DNI);
+    printf("\n\t 4- Fecha (DD/MM/AÑO) : \t %i/%i/%i", socios.auxSocio[posicion].Fecha_Nac.dia,socios.auxSocio[posicion].Fecha_Nac.mes,socios.auxSocio[posicion].Fecha_Nac.anno);
+    printf("\n\t 5- Dirección (ciudad/calle/numero): \t %s; %s; %i" , socios.auxSocio[posicion].ciudad, socios.auxSocio[posicion].calle,socios.auxSocio[posicion].numDirecc);
+
+
+}
+
+int encontrar_socios(char DNI[10],tRegSocios socios,int numSocios){
+    int posicion=-1;
+    for(int i=0; i<socios.numSocios;i++){
+        if(strcmp(DNI,socios.auxSocio[i].DNI)==0){
+            posicion=i;
+        }
+    }
+    if(posicion!=-1){
+        printf("\n\t Se ha encontrado al socio");
+
+    }
+    if(socios.numSocios==0){
+        printf("\n\t No hay ningun socio en la lista ");
+        posicion=-1;
+
+    }
+
+
+    return(posicion);
+}
+
+int Formato_DNI(char DNI[10]){
+    int validacion=1;
+    for (int i=0; i<7;i++){
+        if ((DNI[i]<48)||(DNI[i]>57)){
+            validacion=-1;
+            break;
+        }
+    }
+    if((DNI[8]<65)||(DNI[8]>90)){
+        validacion=-1;
+    }
+    if(validacion==-1){
+        printf("\n\t Error de formato vuelve ha introducir el DNI (00000000X)");
+        Espera();
+    }
+    return(validacion);
+}
+
+
+void altaSocio(tRegSocios socios,FILE *fichNuevoSoc,FILE *fichSocios,int *numSocios){
+    char DNI[10];
+    int validacion;
+    int posicion=0;
+    char aux[20];
+    char confirmacion;
+    int auxDia;//mem sirve para verifica que el dia introducido este dentro de los dias que tiene el mes correspondiente
+
+
+    confirmacion='N';
+    while((confirmacion!='S')&&(*numSocios <= 50)){
+        do{
+            system("cls");
+            printf("\n\t\t Alta de usuario numero: %i", *numSocios);
+            printf("\n\n\t Introduzca el DNI del usuario (00000000X)\t");
+            fflush(stdin);
+            gets(DNI);
+            posicion=encontrar_socios(DNI,socios,numSocios);
+            validacion=Formato_DNI(DNI);
+        }while((posicion!=-1)||(validacion==-1));
+
+        strcpy(socios.auxSocio[*numSocios].DNI,DNI);
+
+        printf("\n\t\t Alta de usuario numero: %i",*numSocios);
+        printf("\n\n\t Indroduzca el nombre del nuevo socio:\t");
+        fflush(stdin);
+        gets(socios.auxSocio[*numSocios].nombre);
+
+        printf("\n\t Indroduzca los apellidos del nuevo socio:\t");
+        fflush(stdin);
+        gets(socios.auxSocio[*numSocios].apellidos);
+
+        printf("\n\t Indroduzca el telefono:\t");
+        fflush(stdin);
+        gets(socios.auxSocio[*numSocios].telefono);
+
+        printf("\n\t Fecha de nacimiento");
+        do{
+            printf("\n\t Indroduzca mes de nacimieto (formato numero):\t");
+            fflush(stdin);
+            scanf("%i", &socios.auxSocio[*numSocios].Fecha_Nac.mes);
+        }while((socios.auxSocio[*numSocios].Fecha_Nac.mes<1)||(socios.auxSocio[*numSocios].Fecha_Nac.mes>12));
+
+        do{
+            printf("\n\t Indroduzca dia de nacimieto (formato numero):\t");
+            fflush(stdin);
+            scanf("%i",&socios.auxSocio[*numSocios].Fecha_Nac.dia);
+
+            if(socios.auxSocio[*numSocios].Fecha_Nac.mes<7){
+
+                if(socios.auxSocio[*numSocios].Fecha_Nac.mes % 2==0){
+                    auxDia=30;
+                    if(socios.auxSocio[*numSocios].Fecha_Nac.mes==2){
+                        auxDia=28;//supongo que no hay años bisiestos
+                    }
+
+                }else{
+                    auxDia=31;
+                }
+            }else{
+                if(socios.auxSocio[*numSocios].Fecha_Nac.mes % 2==0){
+                        auxDia=31;
+                }else{
+                    auxDia=30;
+                }
+            }
+
+        }while((socios.auxSocio[*numSocios].Fecha_Nac.dia<1)||(socios.auxSocio[*numSocios].Fecha_Nac.dia>auxDia));
+
+        do{
+            printf("\n\t Indroduzca año de nacimieto (formato numero):\t");
+            scanf("%i", &socios.auxSocio[*numSocios].Fecha_Nac.anno);
+        }while((socios.auxSocio[*numSocios].Fecha_Nac.anno<1950)||(socios.auxSocio[*numSocios].Fecha_Nac.anno>2200));
+
+        printf("\n\n\t Direccion");
+
+        printf("\n\t Indroduzca nombre de la calle:\t");
+        fflush(stdin);
+        gets(socios.auxSocio[*numSocios].calle);
+        printf("\n\t Indroduzca nombre de la ciudad:\t");
+        fflush(stdin);
+        gets(socios.auxSocio[*numSocios].ciudad);
+        printf("\n\t Indroduzca numero:\t");
+        fflush(stdin);
+        scanf("%i", &socios.auxSocio[*numSocios].numDirecc);
+
+        system("cls");
+        posicion=*numSocios;
+        printf("\n\t\t Alta de usuario numero: %i",posicion);
+        mostrar_socios(socios,posicion);
+        printf("\n\n\t ¿desea gardar los datos? (S/N)");
+        fflush(stdin);
+        scanf("%s",&confirmacion);
+        confirmacion = toupper(confirmacion);
+
+        if(confirmacion=='S'){
+            printf("\n\n\t Los datos se han guardado");
+
+            Espera();
+            sprintf(aux,"<%s>*<%s>*<%s>*<%s>*<%i/%i/%i>\n",socios.auxSocio[*numSocios].DNI,socios.auxSocio[*numSocios].nombre,socios.auxSocio[*numSocios].apellidos,socios.auxSocio[*numSocios].telefono,socios.auxSocio[*numSocios].Fecha_Nac.dia,socios.auxSocio[*numSocios].Fecha_Nac.mes,socios.auxSocio[*numSocios].Fecha_Nac.anno);
+
+            *numSocios=*numSocios+1;
+            guardarSociosTexto(socios,fichNuevoSoc,aux);
+            confirmacion='S';
+        }else{
+            printf("\n\n\t Proceso de alta abortado");
+            confirmacion='S';
+
+        }
+
+
+    }
+}
+
+//falta comprobar si funciona
+
+void modificacionSocio(tRegSocios socios,FILE *fichSocios,int numSocios){
+    int opcion=0,posicion,auxDia;
+    char DNI[10];
+    int validar;
+    do{
+        system("cls");
+        printf("\n\t\t MODIFICACION DE UN SOCIO\n");
+        printf("\n\t Introduzca el dni del socio que desea modificar los datos");
+        fflush(stdin);
+        gets(DNI);
+        validar=Formato_DNI(DNI);
+        printf("validacion %i", validar);
+        Espera();
+    }while(validar==-1);
+    posicion=encontrar_socios(DNI,socios,numSocios);
+    printf("posicion %i", posicion);
+    Espera();
+
+    if (posicion==-1){
+        printf("\n\t No se ha encontrado a ningun socio con el dni introducido");
+    }else{
+        do{
+            mostrar_socios(socios,posicion);
+            printf("\n\t 6- Salir");
+            fflush(stdin);
+            printf("\n\t ¿Que dato desea modificar?(Recuerde que el DNI no puede ser modificado)");
+            scanf("\t %i",&opcion);
+            switch(opcion)
+            {
+                case 1:
+                    printf("\n\n\t Indroduzca el nombre del nuevo socio:\t");
+                    fflush(stdin);
+                    gets(socios.auxSocio[posicion].nombre);
+                    break;
+                case 2:
+                    printf("\n\t Indroduzca los apellidos del nuevo socio:\t");
+                    fflush(stdin);
+                    gets(socios.auxSocio[posicion].apellidos);
+                    break;
+                case 3:
+                    printf("\n\t Indroduzca el telefono:\t");
+                    fflush(stdin);
+                    gets(socios.auxSocio[posicion].telefono);
+                    break;
+                case 4:
+                    printf("\n\t Fecha de nacimiento");
+                    do{
+                        printf("\n\t Indroduzca mes de nacimieto (formato numero):\t");
+                        fflush(stdin);
+                        scanf("%i", &socios.auxSocio[posicion].Fecha_Nac.mes);
+                    }while((socios.auxSocio[posicion].Fecha_Nac.mes<1)||(socios.auxSocio[posicion].Fecha_Nac.mes>12));
+
+                    do{
+                        printf("\n\t Indroduzca dia de nacimieto (formato numero):\t");
+                        fflush(stdin);
+                        scanf("%i",&socios.auxSocio[posicion].Fecha_Nac.dia);
+
+                        if(socios.auxSocio[posicion].Fecha_Nac.mes<7){
+
+                            if(socios.auxSocio[posicion].Fecha_Nac.mes % 2==0){
+                                auxDia=30;
+                                if(socios.auxSocio[posicion].Fecha_Nac.mes==2){
+                                    auxDia=28;//supongo que no hay años bisiestos
+                                }
+
+                            }else{
+                                auxDia=31;
+                            }
+                        }else{
+                            if(socios.auxSocio[posicion].Fecha_Nac.mes % 2==0){
+                                    auxDia=31;
+                            }else{
+                                auxDia=30;
+                            }
+                        }
+
+                    }while((socios.auxSocio[posicion].Fecha_Nac.dia<1)||(socios.auxSocio[posicion].Fecha_Nac.dia>auxDia));
+
+                    do{
+                        printf("\n\t Indroduzca año de nacimieto (formato numero):\t");
+                        scanf("%i", &socios.auxSocio[posicion].Fecha_Nac.anno);
+                    }while((socios.auxSocio[posicion].Fecha_Nac.anno<1950)||(socios.auxSocio[posicion].Fecha_Nac.anno>2200));
+                    break;
+                case 5:
+                    printf("\n\n\t Direccion");
+
+                    printf("\n\t Indroduzca nombre de la calle:\t");
+                    fflush(stdin);
+                    gets(socios.auxSocio[posicion].calle);
+                    printf("\n\t Indroduzca nombre de la ciudad:\t");
+                    fflush(stdin);
+                    gets(socios.auxSocio[posicion].ciudad);
+                    printf("\n\t Indroduzca numero:\t");
+                    fflush(stdin);
+                    scanf("%i", &socios.auxSocio[posicion].numDirecc);
+                    break;
+                case 6:
+                    guardarDatosSocios(socios,fichSocios);
+                    break;
+            }
+        }while((opcion<1)||(opcion>6));
+
+        }
+
+}
+
+void importarSocios(tRegSocios socios,FILE *fichImporSocios,FILE *fichNuevoSoc,FILE *fichSocios,int *numSocios){
+    char aux[30],aux2[30],dni[10];//el primer aux es la variable que recibe del texto, aux2 es necesaria en la opcion 5y6 para acortar la cadena
+    char texto[60];
+    int validacion=0,posicion=0;
+    int aux1;
+    int numtotal=0;
+    int contador=0;
+
+
+
+    fichImporSocios=fopen("Socios.txt","r");
+    if(fichImporSocios==NULL){
+        printf("\nERROR: Imposible crear el fichero  \n");
+        exit(EXIT_FAILURE);
+    }
+    if(socios.numSocios<50){
+            printf("contador %i \n",contador);
+            fflush(stdin);
+            fgets(aux,30,fichImporSocios);
+        while((!feof(fichImporSocios))){
+
+            if (contador==0){
+                strcpy(aux2, strtok(aux,"\n"));
+                validacion=Formato_DNI(aux2);
+                printf("validacion %i",validacion);
+                Espera();
+                if(validacion==-1){
+                    printf("\n\t ERROR en el formato usuario no guardado\n");
+                    contador=contador+6;
+                    Espera();
+                }else{
+                    strcpy(dni, aux2);
+                    printf("dni %s", dni);
+                    Espera();
+                    posicion= encontrar_socios(dni,socios,numSocios);
+                    printf("posicion %i",posicion);
+                    Espera();
+                    if(posicion==-1){
+                        strcpy(socios.auxSocio[*numSocios].DNI,dni);
+                    }else{
+                        printf("\n\t ERROR Ya hay un usuario con el dni introducido\n");
+                        contador=contador+6;
+                        Espera();
+                    }
+                }
+            }
+            if(contador == 1){
+                strcpy(aux2, strtok(aux,"\n"));
+                printf("nombre %s", aux2);
+                Espera();
+                strcpy(socios.auxSocio[*numSocios].nombre,aux2);
+            }
+            if(contador==2){
+                strcpy(aux2, strtok(aux,"\n"));
+                strcpy(socios.auxSocio[*numSocios].apellidos,aux2);
+            }
+            if (contador==3){
+                strcpy(aux2, strtok(aux,"\n"));
+                strcpy(socios.auxSocio[*numSocios].telefono,aux2);
+            }
+            if(contador==4){
+                printf(" abcd");
+                Espera();
+                strcpy(aux2, strtok(aux,"\n"));
+                strcpy(socios.auxSocio[*numSocios].ciudad ,strtok(aux2,"/"));
+                strcpy(socios.auxSocio[*numSocios].calle ,strtok(NULL,"/"));
+                strcpy(aux2, strtok(NULL,"/"));
+                aux1=atoi(aux2);
+                socios.auxSocio[*numSocios].numDirecc=aux1;
+            }
+            if(contador==5){
+                strcpy(aux2, strtok(aux,"/"));
+                aux1=atoi(aux2);
+                printf("dia %i", aux1);
+                Espera();
+                socios.auxSocio[*numSocios].Fecha_Nac.dia=aux1;
+                strcpy(aux2, strtok(NULL,"/"));
+                aux1=atoi(aux2);
+                printf("mes %i", aux1);
+                Espera();
+                socios.auxSocio[*numSocios].Fecha_Nac.mes=aux1;
+                strcpy(aux2, strtok(NULL,"/"));
+                aux1=atoi(aux2);
+                printf("año %i", aux1);
+                Espera();
+                socios.auxSocio[*numSocios].Fecha_Nac.anno=aux1;
+                contador=6;
+                numtotal=numtotal+1;
+
+            }
+            if(contador==6){
+                contador=0;
+
+            }else{
+                contador=contador+1;
+            }
+            printf("contador %i \n",contador);
+            fflush(stdin);
+            fgets(aux,30,fichImporSocios);
+
+        }
+    }
+    fclose(fichImporSocios);
+    sprintf(texto,"<%s>*<%s>*<%s>*<%s>*<%i/%i/%i>\n",socios.auxSocio[*numSocios].DNI,socios.auxSocio[*numSocios].nombre,socios.auxSocio[*numSocios].apellidos,socios.auxSocio[*numSocios].telefono,socios.auxSocio[*numSocios].Fecha_Nac.dia,socios.auxSocio[*numSocios].Fecha_Nac.mes,socios.auxSocio[*numSocios].Fecha_Nac.anno);
+    *numSocios=*numSocios+numtotal;
+    printf("Se han añadido %i  socios",numtotal);
+    Espera();
+    guardarSociosTexto(socios,fichNuevoSoc,texto);
+
+}
