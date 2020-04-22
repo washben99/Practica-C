@@ -1,0 +1,1524 @@
+
+#include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
+#include <locale.h>
+#include <string.h>
+#include <stdbool.h>
+
+#define MAX_SOCIO 50
+#define MAX_PPELICULAS 200
+#define MAX_PRESTAMO 4
+
+typedef struct fecha
+{
+    int dia;
+    int mes;
+    int ano;
+} tRegFecha;
+
+
+
+typedef struct disponibilidad
+{
+    int disponible;//0 est diponible, 1 no esta diponible
+    char DNI[10];
+    tRegFecha fechaPrestamo;
+
+} tRegDisponibilidad;
+
+typedef struct socios
+{
+    char DNI[10];
+    char nombre[30];
+    char apellidos[50];
+    char telefono[10];
+    int pelisPrestadas;
+    tRegFecha nacimiento;
+    char calle[30];
+    char ciudad[30];
+    int numDirecc;
+
+
+} tRegSocios;
+
+typedef struct bajaSocios
+{
+    char DNI[10];
+    char nombre[30];
+    char apellidos[50];
+    char telefono[10];
+    tRegFecha Fecha[2];//0 para la fecha de nacimiento y 1 para la fecha de baja
+    char calle[30];
+    char ciudad[30];
+    int numDirecc;
+
+
+} tRegBajSocios;
+
+
+typedef struct Pelicula
+{
+    char ID[5];
+    char titulo[20];//si modificamos este numero hay que modificar la variable texto=char20*4
+    char director[20];
+    int anoEstreno;
+    tRegDisponibilidad disponibilidad;
+
+} tRegPelicula;
+
+
+
+
+
+
+
+
+// MENUS
+int menuPrincipal();
+void menuGestionSocios(tRegSocios socios [MAX_SOCIO],tRegBajSocios bajaSocios[100],tRegPelicula Pelicula[200],int *contadorSocios, int *contadorPeliculas);
+void menuGestionPeliculas(tRegPelicula Pelicula[200],int *contadorPeliculas);
+
+//LEER FICHEROS
+void LeerFicherosSocios(tRegSocios socios[50],int *contadorSocios);
+void LeerFicherosPeliculas(tRegPelicula Pelicula[200],int *contadorPeliculas);
+
+//AUXILIARES
+void Pausa();
+int contarSocios(tRegSocios Socios[50]);
+int contarPelis(tRegPelicula Pelicula[200]);
+void guardarDatosSocios(tRegSocios socios [MAX_SOCIO],int *contadorSocios);
+void guardarSociosTexto(tRegSocios socios [MAX_SOCIO],char texto[150] );
+void mostrarSocios(tRegSocios socios[MAX_SOCIO],int posicion);
+int buscarSocios(char DNI[10],tRegSocios socios [MAX_SOCIO],int *contadorSocios);
+int validarDNI(char DNI[10]);
+
+int buscarPeli(char ID[5],tRegPelicula Pelicula[MAX_PPELICULAS],int *contadorPeliculas);
+int FormatoIdPeli(char ID[5]);
+
+
+//prototipos menuGestionSocios
+void bajaSocio(tRegSocios socios [MAX_SOCIO],tRegBajSocios bajaSocios[100],int *contadorSocios);
+void altaSocio(tRegSocios socios [MAX_SOCIO],int *contadorSocios);
+void modificarSocio(tRegSocios socios [MAX_SOCIO],int *contadorSocios);
+void importarSocios(tRegSocios socios [MAX_SOCIO],int *contadorSocios);
+
+
+//prototipos menuGestionSocios:opcion5
+void ListadoGeneralSocios(tRegSocios socios[MAX_SOCIO], int *contadorSocios);
+void listadoNuevosSocios();
+void ListadoSociosPeliculas(tRegSocios Socios[MAX_SOCIO],tRegPelicula Pelicula[200],int *contadorSocios, int *contadorPeliculas);
+void InformeBajaSocios(tRegBajSocios bajaSocios[100]);
+
+
+//prototipos menuGestionPeliculas
+
+void importarPelis(tRegPelicula Pelicula[200],int *contadorPeliculas);
+void devolucion(tRegPelicula Pelicula[200],int *contadorPeliculas);
+
+
+//prototipos menuGestionPeliculas/opcion5
+void listados_pelis(tRegPelicula Pelicula[200],int *numPelicula);
+
+//BOORRAR CUANDO SE VALLA A ENTREGAR
+//subprograma utilizado para verificar la lectuara del fichero socios.dat
+void listadoSocios(tRegSocios socios [MAX_SOCIO]);
+void mostrarSocios2(tRegBajSocios bajaSocios[100],int posicion);
+
+
+
+
+
+int main()
+{
+    tRegSocios socios [MAX_SOCIO];
+    tRegBajSocios bajaSocios [100];
+    tRegPelicula Pelicula[MAX_PPELICULAS];
+
+
+    int opcionMenu;
+    int contadorSocios=0;
+    int contadorPeliculas=0;
+
+
+    LeerFicherosSocios(socios,&contadorSocios);
+    LeerFicherosPeliculas(Pelicula,&contadorPeliculas);
+
+
+    //listadoSocios(socios);
+    Pausa();
+    do
+    {
+        do
+        {
+            opcionMenu=menuPrincipal();
+            Pausa();
+        }
+        while((opcionMenu<0)||(opcionMenu>2));
+        switch (opcionMenu)
+        {
+        case 1:
+            menuGestionSocios(socios,bajaSocios,Pelicula,&contadorSocios,&contadorPeliculas);
+            break;
+        case 2:
+            menuGestionPeliculas(Pelicula,&contadorPeliculas);
+            break;
+        case 0:
+            listadoSocios(socios);
+            Pausa();
+            printf("\n\t Hasta la proxima vez");
+            guardarDatosSocios(socios,&contadorSocios);
+            break;
+        }
+    }
+    while(opcionMenu !=0);
+
+}
+
+
+
+// subprogrmas menus
+int menuPrincipal()
+{
+    int opcion;
+
+    system("cls");
+    printf("\n\t\t MENU PRINCIPAL \n");
+    printf("\t-------------------------\n");
+    printf("\n\t 1-Gestion de Socios ");
+    printf("\n\t 2-Gestion de Peliculas");
+    printf("\n\t 0-Salir");
+    printf("\n\n\t Elije una opcion\t");
+    scanf("%i", &opcion);
+
+
+    return (opcion);
+}
+
+void menuGestionSocios(tRegSocios socios[MAX_SOCIO],tRegBajSocios bajaSocios[100],tRegPelicula Pelicula[200],int *contadorSocios,int *contadorPeliculas)
+{
+
+    int opcion,opcion1;
+
+    do
+    {
+        system("cls");
+
+        printf("\n\t\t GESTION SOCIOS \n");
+        printf("\t-------------------------\n");
+        printf("\n\t 1-Alta de socio ");
+        printf("\n\t 2-Baja de socio");
+        printf("\n\t 3-Modificacion de un socio ");
+        printf("\n\t 4-Importar socio");
+        printf("\n\t 5-listado de socios");
+        printf("\n\t 0-Salir");
+        printf("\n\n\t Elije una opcion\t");
+        scanf("%i", &opcion);
+
+        switch(opcion)
+        {
+        case 1:
+            altaSocio(socios,contadorSocios);
+            break;
+        case 2:
+            bajaSocio(socios, bajaSocios,contadorSocios);
+            break;
+        case 3:
+            modificarSocio(socios,contadorSocios);
+            break;
+        case 4:
+            importarSocios(socios,contadorSocios);
+            break;
+        case 5:
+            do
+            {
+                system("cls");
+                printf("\n\t\t GESTION SOCIOS \n");
+                printf("\t-------------------------\n");
+                printf("\n\t Menu Listado Socios\n");
+                printf("\n\t 1-Listado General ");
+                printf("\n\t 2-Listado de nuevos socios");
+                printf("\n\t 3-Listado de socios que tiene prestamos ");
+                printf("\n\t 4-listado de socios dados de baja");
+                printf("\n\t 0-Salir");
+                printf("\n\n\t Elije una opcion\t");
+                scanf("%i", &opcion1);
+                switch(opcion1)
+                {
+                case 1:
+                    ListadoGeneralSocios(socios, contadorSocios);
+                    break;
+                case 2:
+                    listadoNuevosSocios();
+                    break;
+                case 3:
+                    ListadoSociosPeliculas(socios,Pelicula,contadorSocios,contadorPeliculas);
+                    break;
+                case 4:
+                    InformeBajaSocios(bajaSocios);
+                    break;
+                }
+            }
+            while(0!=opcion1);
+            break;
+        }
+    }
+    while(opcion!=0);
+}
+
+void menuGestionPeliculas(tRegPelicula Pelicula[200],int *contadorPeliculas)
+{
+    int opcion,opcion1;
+    do
+    {
+        system("cls");
+        printf("\n\t\t GESTION DE PELICULAS\n");
+        printf("\n\t 1-Importar peliculas");
+        printf("\n\t 2-Mostrar datos de una pelicula");
+        printf("\n\t 3-Prestamo");
+        printf("\n\t 4-Devolucion");
+        printf("\n\t 5-Listado de Peliculas\n");
+        printf("\n\t 0-Salir");
+        scanf("%i", opcion);
+        switch(opcion)
+        {
+        case 1:
+            importarPelis(Pelicula,contadorPeliculas);
+            break;
+        case 2:
+            break;
+        case 3:
+            break;
+        case 4:
+            devolucion(Pelicula,contadorPeliculas);
+            break;
+        case 5:
+            do
+            {
+                system("cls");
+                printf("\n\t\t SUBMENU LISTADO DE PELICULAS\n");
+                printf("\n\t 1-Listado general");
+                printf("\n\t 2-Listado de peliculas no prestadas");
+                printf("\n\t 3-Listado de peliculas prestadas");
+                printf("\n\t 4-Listado de peliculas por titulo");
+                printf("\n\t 5-Listado de peliculas por aÑo");
+                printf("\n\t 6-Informe de prestamos\n");
+                printf("\n\t 0-Salir");
+                scanf("%i", opcion1);
+                switch(opcion1)
+                {
+                case 1:
+                    listados_pelis(Pelicula,contadorPeliculas);
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    break;
+                case 4:
+                    break;
+                case 5:
+                    break;
+                case 6:
+                    break;
+
+                }
+            }
+            while(opcion!=0);
+            break;
+        }
+    }
+    while(opcion!=0);
+}
+
+
+
+//subprogrmas para leer los ficheros de la opcion 1
+
+void LeerFicherosSocios(tRegSocios socios[50],int *contadorSocios)
+{
+    FILE *fichSocios;
+    int posicion=0;
+
+
+
+    fichSocios=fopen("Socios.dat","rb");
+    if(fichSocios == NULL)
+    {
+        printf("\nERROR: Imposible abrir el fichero \n");
+        Pausa();
+        fclose(fichSocios);
+        fichSocios=fopen("Socios.dat","wb");
+        if(fichSocios != NULL)
+        {
+            printf("\n Se ha creado el fichero \n");
+            Pausa();
+        }
+        fclose(fichSocios);
+    }
+    else
+    {
+        while(!feof(fichSocios))
+        {
+            fread(&socios[posicion],sizeof(tRegSocios),1,fichSocios);
+            posicion=posicion+1;
+        }
+        for (int i=0; i<50; i++)
+        {
+
+            if(socios[posicion].DNI[0]=='\0')
+            {
+                i=51;
+            }
+            else
+            {
+                *contadorSocios=*contadorSocios+1;
+            }
+        }
+
+    }
+    fclose(fichSocios);
+}
+
+
+
+void LeerFicherosPeliculas(tRegPelicula Pelicula[200],int *contadorPeliculas)
+{
+    FILE *fichPeliculas;
+    int posicion=0;
+
+    fichPeliculas=fopen("Peliculas.dat","rb");
+    if(fichPeliculas == NULL)
+    {
+        printf("\nERROR: Imposible abrir el fichero peliculas\n");
+        Pausa();
+        fclose(fichPeliculas);
+        fichPeliculas=fopen("Peliculas.dat","wb");
+        if(fichPeliculas != NULL)
+        {
+            printf("\n Se ha creado el fichero \n");
+            Pausa();
+        }
+        fclose(fichPeliculas);
+    }
+    else
+    {
+        while(!feof(fichPeliculas))
+        {
+            fread(&Pelicula[posicion],sizeof(tRegPelicula),1,fichPeliculas);
+            posicion=posicion+1;
+        }
+        for (int i=0; i<50; i++)
+        {
+
+            if(Pelicula[posicion].ID[0]=='\0')
+            {
+                i=51;
+            }
+            else
+            {
+                *contadorPeliculas=*contadorPeliculas+1;
+            }
+        }
+
+    }
+
+    fclose(fichPeliculas);
+}
+
+
+
+
+//subprogramas auxliares
+void  Pausa()
+{
+    printf("\n\n\t\t Pulse ENTER para continuar\t");
+    fflush(stdin);
+    getchar();
+    system ("cls");
+}
+
+
+
+
+void guardarDatosSocios(tRegSocios socios [MAX_SOCIO],int *contadorSocios)
+{
+
+    FILE *fichSocios;
+    fichSocios=fopen("Socios.dat","r+b");
+    if(fichSocios == NULL)
+    {
+        printf("\nERROR: Imposible abrir el fichero Socios.dat \n");
+        fclose(fichSocios);
+    }
+    else
+    {
+        for(int i=0; i<=*contadorSocios; i++)
+        {
+            fwrite(&socios[i],sizeof(tRegSocios),1, fichSocios);
+        }
+        fflush(fichSocios);
+        fclose(fichSocios);
+    }
+
+}
+
+void guardarSociosTexto(tRegSocios socios[MAX_SOCIO],char texto[150])
+{
+    FILE *fichNuevoSoc;
+    fichNuevoSoc=fopen("nuevoSoc.txt","a+");
+    if(fichNuevoSoc == NULL)
+    {
+        printf("\n\t ERROR: no se ha podido abrir el fichero nuevoSoc.txt");
+        Pausa();
+        fclose(fichNuevoSoc);
+        fichNuevoSoc=fopen("nuevoSoc.txt","w");
+    }
+    else
+    {
+        fputs(texto,fichNuevoSoc);
+    }
+    fclose(fichNuevoSoc);
+
+}
+
+void mostrarSocios(tRegSocios socios[50],int posicion)
+{
+
+    printf("\n\t\t DATOS SOCIOS");
+    printf("\n\t 0- DNI : \t %s", socios[posicion].DNI);
+    printf("\n\t 1- Nombre : \t %s", socios[posicion].nombre);
+    printf("\n\t 2- Apellidos : \t %s", socios[posicion].apellidos);
+    printf("\n\t 3- Telefono : \t %s", socios[posicion].telefono);
+    printf("\n\t 4- Fecha (DD/MM/AÑO) : \t %i/%i/%i", socios[posicion].nacimiento.dia,socios[posicion].nacimiento.mes,socios[posicion].nacimiento.ano);
+    printf("\n\t 5- Dirección (ciudad/calle/numero): \t %s; %s; %i", socios[posicion].ciudad, socios[posicion].calle,socios[posicion].numDirecc);
+
+
+}
+
+
+int buscarSocios(char DNI[10],tRegSocios socios [MAX_SOCIO],int *contadorSocios)
+{
+    int posicion=-1;
+    for(int i=0; i<*contadorSocios; i++)
+    {
+        if(strcmp(DNI,socios[i].DNI)==0)
+        {
+            posicion=i;
+        }
+    }
+    if(posicion==-1)
+    {
+        if(*contadorSocios==0)
+        {
+            printf("\n\t No hay ningun socio en la lista ");
+            Pausa();
+            posicion=-1;
+
+        }
+        else
+        {
+            printf("\n\t No se ha encontrado al socio");
+            Pausa();
+        }
+
+    }
+
+    return(posicion);
+}
+
+int validarDNI(char DNI[10])
+{
+    int validacion=1;
+    for (int i=0; i<7; i++)
+    {
+        if ((DNI[i]<48)||(DNI[i]>57))
+        {
+            validacion=-1;
+            break;
+        }
+    }
+    if((DNI[8]<65)||(DNI[8]>90))
+    {
+        validacion=-1;
+    }
+    if(validacion==-1)
+    {
+        printf("\n\t Error de formato en el DNI (00000000X)");
+        Pausa();
+    }
+    return(validacion);
+}
+
+int buscarPeli(char ID[5],tRegPelicula Pelicula[MAX_PPELICULAS],int *contadorPeliculas)
+{
+    int posicion=-1;
+    for(int i=0; i<*contadorPeliculas; i++)
+    {
+        if(strcmp(ID,Pelicula[i].ID)==0)
+        {
+            posicion=i;
+        }
+    }
+    if(posicion==-1)
+    {
+        if(*contadorPeliculas==0)
+        {
+            printf("\n\t No hay ninguna pelicula en la lista ");
+            posicion=-1;
+            Pausa();
+        }
+        else
+        {
+            printf("\n\tERROR: No se ha encontrado la pelicula");
+            Pausa();
+        }
+
+
+
+    }
+
+
+    return(posicion);
+}
+
+int FormatoIdPeli(char ID[5])
+{
+    int validacion=1;
+    if((ID[0]<65)||(ID[0]>90))
+    {
+        validacion=-1;
+    }
+    for (int i=1; i<3; i++)
+    {
+        if ((ID[i]<48)||(ID[i]>57))
+        {
+            validacion=-1;
+            break;
+        }
+    }
+
+    if(validacion==-1)
+    {
+        printf("\n\t Error de formato vuelve ha introducir el DNI (00000000X)");
+        Pausa();
+    }
+    return(validacion);
+}
+
+bool validarFecha(tRegSocios socios[50],int *contadorSocios)
+{
+    bool validar=true;
+    int auxDia=0;
+    if((socios[*contadorSocios].nacimiento.mes>0)&&(socios[*contadorSocios].nacimiento.mes<=12))
+    {
+        validar=false;
+
+    }
+    if(socios[*contadorSocios].nacimiento.mes<7)
+    {
+
+        if(socios[*contadorSocios].nacimiento.mes % 2==0)
+        {
+            auxDia=30;
+            if(socios[*contadorSocios].nacimiento.mes==2)
+            {
+                auxDia=28;//supongo que no hay años bisiestos
+            }
+
+        }
+        else
+        {
+            auxDia=31;
+        }
+    }
+    else
+    {
+        if(socios[*contadorSocios].nacimiento.mes % 2==0)
+        {
+            auxDia=31;
+        }
+        else
+        {
+            auxDia=30;
+        }
+    }
+
+
+    if((socios[*contadorSocios].nacimiento.dia<1)||(socios[*contadorSocios].nacimiento.dia>auxDia))
+    {
+        validar=false;
+    }
+    if((socios[*contadorSocios].nacimiento.ano<1950)||(socios[*contadorSocios].nacimiento.ano>2200))
+    {
+        validar=false;
+    }
+    return(validar);
+}
+
+
+
+
+//subporgrmas menuGestionSocios
+
+void altaSocio(tRegSocios socios [MAX_SOCIO],int *contadorSocios)
+{
+    char DNI[10];
+    int validacion,telefono=0;
+    int posicion=0;
+    char aux[150];
+    char confirmacion;
+
+    confirmacion='N';
+    while((confirmacion!='S')&&(*contadorSocios <= 50))
+    {
+        do
+        {
+            system("cls");
+            printf("\n\t\t Alta de usuario numero: %i", *contadorSocios);
+            printf("\n\n\t Introduzca el DNI del usuario (00000000X)\t");
+            fflush(stdin);
+            gets(DNI);
+            validacion=validarDNI(DNI);
+            printf("\n\t validacion %i", validacion);
+            posicion=buscarSocios(DNI,socios,contadorSocios);
+            printf("\n\t posicion %i", posicion);
+
+        }
+        while((posicion!=-1)||(validacion==-1));
+
+        strcpy(socios[*contadorSocios].DNI,DNI);
+
+        printf("\n\t\t Alta de usuario numero: %i",*contadorSocios);
+        printf("\n\n\t Indroduzca el nombre del nuevo socio:\t");
+        fflush(stdin);
+        gets(socios[*contadorSocios].nombre);
+
+        printf("\n\t Indroduzca los apellidos del nuevo socio:\t");
+        fflush(stdin);
+        gets(socios[*contadorSocios].apellidos);
+
+        do
+        {
+            printf("\n\t Indroduzca el telefono:\t");
+            fflush(stdin);
+            gets(socios[*contadorSocios].telefono);
+            telefono=atoi(socios[*contadorSocios].telefono);
+        }
+        while(telefono>100000000);
+
+        printf("\n\t Fecha de nacimiento");
+        do
+        {
+            printf("\n\t Indroduzca mes de nacimieto (ejemplo: 1,2,3,...,11,12):\t");
+            fflush(stdin);
+            scanf("%i", &socios[*contadorSocios].nacimiento.mes);
+
+            printf("\n\t Indroduzca dia de nacimieto (formato numero):\t");
+            fflush(stdin);
+            scanf("%i",&socios[*contadorSocios].nacimiento.dia);
+
+            printf("\n\t Indroduzca año de nacimieto (formato numero):\t");
+            scanf("%i\n", &socios[*contadorSocios].nacimiento.ano);
+        }
+        while(validarFecha(socios,contadorSocios)==false);
+
+        printf("\n\n\t Direccion");
+
+        printf("\n\t Indroduzca nombre de la calle:\t");
+        fflush(stdin);
+        gets(socios[*contadorSocios].calle);
+        printf("\n\t Indroduzca nombre de la ciudad:\t");
+        fflush(stdin);
+        gets(socios[*contadorSocios].ciudad);
+        printf("\n\t Indroduzca numero:\t");
+        fflush(stdin);
+        scanf("%i", &socios[*contadorSocios].numDirecc);
+
+        system("cls");
+        posicion=*contadorSocios;
+        printf("\n\t\t Alta de usuario numero: %i",posicion);
+        mostrarSocios(socios,posicion);
+        printf("\n\n\t ¿desea gardar los datos? (S/N)");
+        fflush(stdin);
+        scanf("%c",&confirmacion);
+        confirmacion = toupper(confirmacion);
+
+        if(confirmacion=='S')
+        {
+            printf("\n\n\t Los datos se han guardado");
+
+            Pausa();
+            sprintf(aux,"<%s>*<%s>*<%s>*<%s>*<%i/%i/%i>\n",socios[*contadorSocios].DNI,socios[*contadorSocios].nombre,socios[*contadorSocios].apellidos,socios[*contadorSocios].telefono,socios[*contadorSocios].nacimiento.dia,socios[*contadorSocios].nacimiento.mes,socios[*contadorSocios].nacimiento.ano);
+
+            *contadorSocios=*contadorSocios+1;
+            guardarSociosTexto(socios,aux);
+            confirmacion='S';
+        }
+        else
+        {
+            printf("\n\n\t Proceso de alta abortado");
+            confirmacion='S';
+
+        }
+
+
+    }
+}
+
+void bajaSocio(tRegSocios socios [MAX_SOCIO],tRegBajSocios bajaSocios[100],int *contadorSocios)
+{
+    FILE *fichBajSocios;
+    int posicion,validar,contBajSocios=0,contador=0;
+    char DNI[10];
+    char respuesta;
+    time_t t;
+    struct tm *tm;
+    t=time(NULL);
+    fichBajSocios=fopen("HcoSoc.dat","a+b");
+    if(fichBajSocios==NULL)
+    {
+        printf("\n ERROR: fichero no encontrado");
+        fclose(fichBajSocios);
+    }
+    else
+    {
+        while(!feof(fichBajSocios))
+        {
+            fread(&bajaSocios[contador],sizeof(tRegBajSocios),1,fichBajSocios);
+            if(bajaSocios[contador].DNI[0]=='\0')
+            {
+                contBajSocios=contBajSocios+1;
+            }
+            contador=contador+1;
+        }
+
+        printf("contBajSocios %i",contBajSocios);
+        Pausa();
+        do
+        {
+            system("cls");
+            printf("\n\t\t BAJA DE UN SOCIO\n");
+            printf("\n\t Introduzca el dni del socio que desea eliminar");
+            fflush(stdin);
+            gets(DNI);
+            validar=validarDNI(DNI);
+            printf("validacion %i", validar);
+            Pausa();
+        }
+        while(validar==-1);
+        posicion=buscarSocios(DNI,socios,contadorSocios);
+        printf("posicion %i", posicion);
+        Pausa();
+
+        mostrarSocios(socios,posicion);
+        printf("\n\t ¿Desea realmente dar de baja este socio?");
+        fflush(stdin);
+        scanf("%c", &respuesta);
+        respuesta=toupper(respuesta);
+
+        if(respuesta=='S')
+        {
+            if(socios[posicion].pelisPrestadas==0)
+            {
+                strcpy(bajaSocios[contBajSocios].DNI,socios[posicion].DNI);
+                strcpy(bajaSocios[contBajSocios].nombre,socios[posicion].nombre);
+                strcpy(bajaSocios[contBajSocios].apellidos,socios[posicion].apellidos);
+                strcpy(bajaSocios[contBajSocios].telefono,socios[posicion].telefono);
+                bajaSocios[contBajSocios].Fecha[0].dia=socios[posicion].nacimiento.dia;
+                bajaSocios[contBajSocios].Fecha[0].mes=socios[posicion].nacimiento.mes;
+                bajaSocios[contBajSocios].Fecha[0].ano=socios[posicion].nacimiento.ano;
+                strcpy(bajaSocios[contBajSocios].calle,socios[posicion].calle);
+                strcpy(bajaSocios[contBajSocios].ciudad,socios[posicion].ciudad);
+                bajaSocios[contBajSocios].numDirecc=socios[posicion].numDirecc;
+
+                for (int i=posicion; i<*contadorSocios; i++)
+                {
+                    socios[i]=socios[i+1];
+
+
+                }
+                socios[*contadorSocios].DNI[0]='\0';
+                tm=localtime(&t);
+                bajaSocios[contBajSocios].Fecha[1].dia=tm->tm_mday;
+                bajaSocios[contBajSocios].Fecha[1].mes=tm->tm_mon+1;
+                bajaSocios[contBajSocios].Fecha[1].ano=tm->tm_year+1900;
+                *contadorSocios = *contadorSocios - 1;
+                contBajSocios=contBajSocios+1;
+                for(int i=0; i<contBajSocios; i++)
+                {
+                    fwrite(&bajaSocios[i],sizeof(tRegBajSocios),1, fichBajSocios);
+                }
+                fflush(stdin);
+                printf("\n\t El usuario ha sido dado de baja con exito");
+                Pausa();
+            }
+            else
+            {
+                printf("\n\t No se puede dar de baja al socio porque tiene peliculas prestadas.");
+                Pausa();
+            }
+
+        }
+        else
+        {
+            printf("\n\t El socio no se ha dado de baja.");
+            Pausa();
+        }
+        fclose(fichBajSocios);
+    }
+}
+
+
+void modificarSocio(tRegSocios socios[MAX_SOCIO],int *contadorSocios)
+{
+    int opcion=0,posicion,telefono=0;;
+    char DNI[10];
+    int validar;
+    do
+    {
+        system("cls");
+        printf("\n\t\t MODIFICACION DE UN SOCIO\n");
+        printf("\n\t Introduzca el dni del socio que desea modificar los datos");
+        fflush(stdin);
+        gets(DNI);
+        validar=validarDNI(DNI);
+        printf("validacion %i", validar);
+        Pausa();
+    }
+    while(validar==-1);
+    posicion=buscarSocios(DNI,socios,contadorSocios);
+    printf("posicion %i", posicion);
+    Pausa();
+    do
+    {
+        mostrarSocios(socios,posicion);
+        printf("\n\t 6- Salir");
+        fflush(stdin);
+        printf("\n\t ¿Que dato desea modificar?(Recuerde que el DNI no puede ser modificado)");
+        scanf("\t %i",&opcion);
+        switch(opcion)
+        {
+        case 1:
+            printf("\n\n\t Indroduzca el nombre del nuevo socio:\t");
+            fflush(stdin);
+            gets(socios[posicion].nombre);
+            break;
+        case 2:
+            printf("\n\t Indroduzca los apellidos del nuevo socio:\t");
+            fflush(stdin);
+            gets(socios[posicion].apellidos);
+            break;
+        case 3:
+            do
+            {
+                printf("\n\t Indroduzca el telefono:\t");
+                fflush(stdin);
+                gets(socios[posicion].telefono);
+                telefono=atoi(socios[posicion].telefono);
+            }
+            while(telefono>100000000);
+
+            break;
+        case 4:
+            do
+            {
+                printf("\n\t Fecha de nacimiento");
+                printf("\n\t Indroduzca mes de nacimieto (ejemplo: 1,2,3,..,11,12):\t");
+                fflush(stdin);
+                scanf("%i", &socios[posicion].nacimiento.mes);
+                printf("\n\t Indroduzca dia de nacimieto (formato numero):\t");
+                fflush(stdin);
+                scanf("%i",&socios[posicion].nacimiento.dia);
+                printf("\n\t Indroduzca año de nacimieto (1950<año<2200):\t");
+                scanf("%i", &socios[posicion].nacimiento.ano);
+
+            }
+            while(validarFecha(socios,contadorSocios)==false);
+            break;
+        case 5:
+            printf("\n\n\t Direccion");
+
+            printf("\n\t Indroduzca nombre de la calle:\t");
+            fflush(stdin);
+            gets(socios[posicion].calle);
+            printf("\n\t Indroduzca nombre de la ciudad:\t");
+            fflush(stdin);
+            gets(socios[posicion].ciudad);
+            printf("\n\t Indroduzca numero:\t");
+            fflush(stdin);
+            scanf("%i", &socios[posicion].numDirecc);
+            break;
+        }
+    }
+    while((opcion<1)||(opcion>6));
+
+}
+
+
+
+void importarSocios(tRegSocios socios[MAX_SOCIO],int *contadorSocios)//en el ejemplo del enunciado pone que nombre y apellidos estan junto yo sin embargo lo hago separado porque no sabria difenciar que es el nombre y cual
+{
+    //no sabria difenciar que es el nombre y cual el apellido en el caso de que el numbre fuera compuesto
+
+
+
+    char aux[30],aux2[30],dni[10];//el primer aux es la variable que recibe del texto del fichero, aux2 es necesaria en la opcion 5y6 para acortar la cadena
+    char texto[150];
+    int validacion=0,posicion=0;
+    int aux1;//aux uno se utiliza cuando hay que cambiar la variable recibida del texto(char) a un tipo int para almacenar en el struct
+    FILE *fichImporSocios;
+    int numtotal=0;
+    int contador=0;
+    int aux4=0;//aux 4 se utiliza en  el caso de que el ultimo usuario del fichero tenga un error en el formato o se encuentre su posicion
+    //dependiendo donde se encuentre el error tomara valores entre 0 y  6
+    fichImporSocios=fopen("impSocios.txt","r");
+    if(fichImporSocios==NULL)
+    {
+        printf("\nERROR: Imposible el fichero fichero impSocios.txt \n");
+        Pausa();
+        fclose(fichImporSocios);
+        fichImporSocios=fopen("impSocios.txt","w");
+        if(fichImporSocios==NULL)
+        {
+            printf("\nERROR: Imposible crear fichero impSocios.txt\n");
+            Pausa();
+        }
+        fclose(fichImporSocios);
+    }
+    else
+    {
+        printf("numtotal %i \n",numtotal);
+        if(numtotal<50)
+        {
+            printf("contador %i \n",contador);
+            fflush(stdin);
+            fgets(aux,30,fichImporSocios);
+            while(!feof(fichImporSocios)||(*contadorSocios+numtotal<50))
+            {
+                printf("numtotal 1 %i \n",numtotal);
+                aux4=0;
+                strcpy(aux2, strtok(aux,"\n"));
+                if (contador==0)
+                {
+                    validacion=validarDNI(aux2);
+                    printf("validacion %i",validacion);
+                    Pausa();
+                    if(validacion==-1)
+                    {
+                        aux4=1;
+                        contador=contador+6;
+                        printf("\n\t ERROR en el formato usuario no guardado\n");//sobra, cuando elemine los print de prueba  borrar este tambien el Pausa
+                        Pausa();
+                    }
+                    else
+                    {
+                        strcpy(dni, aux2);
+                        printf("dni %s", dni);
+                        Pausa();
+                        posicion= buscarSocios(dni,socios,contadorSocios);
+                        printf("posicion %i",posicion);
+                        Pausa();
+                        if(posicion==-1)
+                        {
+                            strcpy(socios[*contadorSocios].DNI,dni);
+                        }
+                        else
+                        {
+                            aux4=1;
+                            printf("\n\t ERROR Ya hay un usuario con el dni introducido\n");
+                            contador=contador+6;
+                            Pausa();
+                        }
+                    }
+                }
+                if(contador == 1)
+                {
+                    printf("nombre %s", aux2);
+                    Pausa();
+                    strcpy(socios[*contadorSocios].nombre,aux2);
+                    printf("nombre 1 %s", socios[*contadorSocios].nombre);
+                    Pausa();
+                }
+                if(contador==2)
+                {
+                    printf("apellidos %s", aux2);
+                    Pausa();
+                    strcpy(socios[*contadorSocios].apellidos,aux2);
+                    printf("apellidos 1 %s", socios[*contadorSocios].apellidos);
+                    Pausa();
+                }
+                if(contador==3)
+                {
+                    printf("telefono %s", aux2);
+                    Pausa();
+                    strcpy(socios[*contadorSocios].telefono,aux2);
+                    printf("telefono 1 %s", socios[*contadorSocios].telefono);
+                    Pausa();
+                    aux1=atoi(socios[*contadorSocios].telefono); //atoi: String --> Integer
+                    if(aux1<100000000)
+                    {
+                        aux4=2;
+                    }
+                }
+
+                if(contador==4)
+                {
+                    printf("ciudad calle numero %s", aux2);
+                    Pausa();
+                    strcpy(socios[*contadorSocios].ciudad,strtok(aux2,"/"));
+                    strcpy(socios[*contadorSocios].calle,strtok(NULL,"/"));
+                    strcpy(aux2, strtok(NULL,"/"));
+                    aux1=atoi(aux2);
+                    socios[*contadorSocios].numDirecc=aux1;
+                    printf("ciudad calle numero 1: %s: %s: %i:", socios[*contadorSocios].ciudad,socios[*contadorSocios].calle,socios[*contadorSocios].numDirecc);
+                    Pausa();
+                }
+                if(contador==5)
+                {
+                    strcpy(aux2, strtok(aux,"/"));
+                    printf("fecha dia/mes/año: %s", aux2);
+                    Pausa();
+                    aux1=atoi(aux2);
+                    printf("dia %i", aux1);
+                    Pausa();
+                    socios[*contadorSocios].nacimiento.dia=aux1;
+                    strcpy(aux2, strtok(NULL,"/"));
+                    aux1=atoi(aux2);
+                    printf("mes %i", aux1);
+                    Pausa();
+                    socios[*contadorSocios].nacimiento.mes=aux1;
+                    strcpy(aux2, strtok(NULL,"/"));
+                    aux1=atoi(aux2);
+                    printf("año %i", aux1);
+                    Pausa();
+                    socios[*contadorSocios].nacimiento.ano=aux1;
+                    printf("dia mes ano1: %i: %i: %i:", socios[*contadorSocios].nacimiento.dia,socios[*contadorSocios].nacimiento.mes,socios[*contadorSocios].nacimiento.ano);
+                    Pausa();
+                    if(validarFecha(socios,contadorSocios)==false)
+                    {
+                        aux4=3;
+                        contador=6;
+                    }
+                    else
+                    {
+                        aux4=0;
+                        contador=6;
+                        numtotal=numtotal+1;
+                    }
+
+                }
+                if(contador==6)
+                {
+                    contador=0;
+                    printf("contador %i \n",contador);
+                    if(aux4!=0)
+                    {
+                        printf("contador2 %i \n",contador);
+
+                        switch(aux4)
+                        {
+                        case 1:
+                            aux4=5;
+                            break;
+                        case 2:
+                            aux4=2;
+                            break;
+                        }
+                        for(int i=0; i<aux4; i++)
+                        {
+                            fgets(aux,30,fichImporSocios);
+                            printf("\nauxFalse %s",aux);
+                        }
+                    }
+
+                    else
+                    {
+
+                        sprintf(texto,"<%s>*<%s %s>*<%s>*<%i/%i/%i>\n",socios[*contadorSocios].DNI,socios[*contadorSocios].nombre,socios[*contadorSocios].apellidos,socios[*contadorSocios].telefono,socios[*contadorSocios].nacimiento.dia,socios[*contadorSocios].nacimiento.mes,socios[*contadorSocios].nacimiento.ano);
+                        guardarSociosTexto(socios,texto);
+                    }
+
+                }
+                else
+                {
+                    contador=contador+1;
+                }
+                fflush(stdin);
+                fgets(aux,30,fichImporSocios);
+                printf("\nauxbucle %s",aux);
+                printf("contador1 %i \n",contador);
+            }
+        }
+        else
+        {
+            printf("\n\t Lista de socios llena");
+            Pausa();
+
+        }
+        fclose(fichImporSocios);
+        *contadorSocios=*contadorSocios+numtotal;
+        printf("Se han añadido %i  socios",numtotal);
+        Pausa();
+
+    }
+
+
+}
+
+//subprogrmas Opcion1/opcion5
+void ListadoGeneralSocios(tRegSocios socios[MAX_SOCIO], int *contadorSocios)
+{
+
+    char nombre[80],texto[80],contador=0;
+
+    system("cls");
+    printf("\n\t\t\t\t LISTADOS GENERAL DE SOCIOS\n");
+    printf("\n\t\t DNI \t\t\t\t\tNombre y Apellidos \t\t\tF.Nacimiento \tTelefono");
+    for (int i=0; i<*contadorSocios; i++)
+    {
+        if(contador<20)
+        {
+            sprintf(texto,"%i-%i-%i ",socios[i].nacimiento.dia,socios[i].nacimiento.mes,socios[i].nacimiento.ano);
+            sprintf(nombre,"%s %s",socios[i].nombre,socios[i].apellidos);
+
+            printf("\n\t\t%s \t%60s\t%9s \t%9s",socios[i].DNI,nombre,texto,socios[i].telefono);
+            contador=contador+1;
+        }
+        else
+        {
+            Pausa();
+            system("cls");
+            printf("\n\t\t\t\t LISTADOS GENERAL DE SOCIOS\n");
+            printf("\n\t\t DNI \t\t\t\t\tNombre y Apellidos \t\t\tF.Nacimiento \tTelefono");
+            contador=0;
+        }
+
+    }
+
+
+}
+
+void listadoNuevosSocios()
+{
+    FILE *fichNuevoSoc;
+    char aux[120],aux1[120],DNI[10],nombre[80],telefono[10],fecha[9];
+
+    fichNuevoSoc=fopen("nuevoSoc.txt","r"); //porque ya lo tengo creado
+    if(fichNuevoSoc == NULL)
+    {
+        printf("\nERROR: No se ha econtrado el fichero  \n");
+        fclose(fichNuevoSoc);
+        fichNuevoSoc=fopen("nuevoSoc.txt","w"); //porque ya lo tengo creado
+        if(fichNuevoSoc == NULL)
+        {
+            printf("\nERROR: fichero no creado  \n");
+            fclose(fichNuevoSoc);
+        }
+        fclose(fichNuevoSoc);
+    }
+    else
+    {
+        system("cls");
+        printf("\n\t LISTADOS DE NUEVOS SOCIOS REGISTRADOS ");
+        printf("\n\t\t DNI \tNombre y Apellidos \tTelefono \tF.Alta");
+        fgets(aux,120,fichNuevoSoc);
+        while(!feof(fichNuevoSoc))
+        {
+            strcpy(aux1, strtok(aux,"\n"));
+            strcpy(DNI, strtok(aux1,"<"">*"));
+            printf("\n\t%10s",DNI);
+            strcpy(nombre, strtok(NULL,"<"">*"));
+            printf("\t%60s ",nombre);
+            strcpy(telefono, strtok(NULL,"<"">*"));
+            printf("\t%9s ",telefono);
+            strcpy(fecha, strtok(NULL,"<"">*"));
+            printf("\t%9s ",fecha);
+
+            fgets(aux,120,fichNuevoSoc);
+        }
+        Pausa();
+        fclose(fichNuevoSoc);
+    }
+
+}
+
+void ListadoSociosPeliculas(tRegSocios socios[MAX_SOCIO],tRegPelicula Pelicula[200],int *contadorSocios, int *contadorPeliculas)
+{
+
+    char texto[80],nombre[80];
+
+    system("cls");
+    printf("\n\t LISTADOS DE SOCIOS CON PELICULAS PRESTADAS");
+    printf("\n\t\t DNI \tNombre y Apellidos \tN. peliculas \tTitulo/s");
+    for (int i=0; i<*contadorSocios; i++)
+    {
+        if(socios[i].pelisPrestadas!=0)
+        {
+            for(int a=0; a<*contadorPeliculas; a++)
+            {
+                if(strcmp(socios[i].DNI,Pelicula[a].disponibilidad.DNI)==0)
+                {
+                    sprintf(texto,"%s; ",Pelicula[a].titulo);
+                }
+            }
+            sprintf(nombre,"%s %s",socios[i].nombre,socios[i].apellidos);
+            printf("\n\t\t%s \t80%s \t%1i \t%80s",socios[i].DNI,nombre,socios[i].pelisPrestadas,texto);
+        }
+    }
+    Pausa();
+
+}
+
+void InformeBajaSocios(tRegBajSocios bajaSocios[100])
+{
+    FILE *fichBajSocios;
+    int contHcoSocios=0,ano=2018,contador=0,contadorTotal=0,aux=0;
+
+    fichBajSocios=fopen("HcoSoc.dat","rb");
+    if(fichBajSocios == NULL)
+    {
+        printf("\nERROR: Error fichero no existe  \n");
+        Pausa();
+        fclose(fichBajSocios);
+        fichBajSocios=fopen("HcoSoc.dat","wb");
+        if(fichBajSocios != NULL)
+        {
+            printf("\nfichero creado  \n");
+            Pausa();
+        }
+        fclose(fichBajSocios);
+    }
+    else
+    {
+        while(!feof(fichBajSocios))
+        {
+            fread(&bajaSocios[aux],sizeof(tRegBajSocios),1,fichBajSocios);
+        }
+        fclose(fichBajSocios);
+
+        for(int i=0; i<100; i++)
+        {
+            contHcoSocios=i;
+            if(bajaSocios[i].DNI=='\0')
+            {
+                i=101;
+            }
+        }
+        for(int i=0; i<contHcoSocios; i++)
+        {
+            mostrarSocios2(bajaSocios,i);
+        }
+        Pausa();
+        system("cls");
+        printf("\n\t INFORME DE BAJAS DE SOCIO");
+        printf("\n\t Ano \tNumero de bjas");
+        printf("\n\t _________________________");
+        while (ano<=2022)
+        {
+            for(int i; i<contHcoSocios; i++)
+            {
+                if(ano==bajaSocios[i].Fecha[1].ano)
+                {
+                    contador=contador+1;
+                }
+            }
+            printf("\n\t%i \t\t%i",ano,contador);
+            contadorTotal=contadorTotal+contador;
+            ano=ano+1;
+
+        }
+    }
+    printf("\n\t---------------------------");
+    printf("\n\t El Numero total de bajas: %i",contadorTotal);
+    printf("\n\t---------------------------");
+}
+
+
+
+// subprogramas menuGestionPeliculas menu principal
+
+void importarPelis(tRegPelicula Pelicula[200], int *contadorPeliculas)
+{
+    int contador=0,validacion=0,posicion=0,numPeli=0,aux3=0;
+    bool aux4=false;
+    char aux[20],aux1[20],aux2[20],nombreFichero[20];
+    FILE *fichImporPelis;
+    printf("Escriba el nombre del fichero del que desea importar las peliculas");
+
+    fflush(stdin);
+    gets(nombreFichero);
+    fichImporPelis=fopen(nombreFichero,"r");
+    if(fichImporPelis == NULL)
+    {
+        printf("\nERROR:fichero %s no encontrado \n\n", nombreFichero);
+        Pausa();
+    }
+    else
+    {
+        if(*contadorPeliculas<200)
+        {
+            printf("contador %i \n",contador);
+            fflush(stdin);
+            fgets(aux,20,fichImporPelis);
+            while(!feof(fichImporPelis)||(*contadorPeliculas>=200))
+            {
+                aux4=false;
+                strcpy(aux1, strtok(aux,"\n"));
+                if(contador==0)
+                {
+                    strcpy(aux2, strtok(aux1,"<"">"));
+                    validacion=FormatoIdPeli(aux2);
+                    if(validacion==-1)
+                    {
+                        contador=4;
+                        aux4=true;
+                    }
+                    else
+                    {
+                        if(posicion==-1)
+                        {
+                            contador=4;
+                            aux4=true;
+                        }
+                        else
+                        {
+                            strcpy(Pelicula[numPeli].ID,aux2);
+                        }
+                    }
+                }
+                if(contador==1)
+                {
+                    strcpy(aux2, strtok(aux1,"<"">"));
+                    strcpy(Pelicula[numPeli].titulo,aux2);
+                }
+                if(contador==2)
+                {
+                    strcpy(aux2, strtok(aux1,"<"">"));
+                    strcpy(Pelicula[numPeli].director,aux2);
+                }
+                if(contador==3)
+                {
+
+                    strcpy(aux2, strtok(aux1,"<"">"));
+                    aux3=atoi(aux2);
+                    Pelicula[numPeli].anoEstreno=aux3;
+                    Pelicula[numPeli].disponibilidad.disponible=0;
+                    numPeli=numPeli+1;
+                    contador=contador+1;
+                }
+                if(contador==4)
+                {
+                    contador=0;
+                    if(aux4==true)
+                    {
+                        for(int i=0; i<4; i++)
+                        {
+                            fgets(aux,20,fichImporPelis);
+                        }
+                    }
+                }
+                else
+                {
+                    contador=contador+1;
+                }
+                fgets(aux,20,fichImporPelis);
+            }
+            if(numPeli==200)
+            {
+                printf("\n\t Se han añadido: %i",numPeli);
+                printf("\n\t Lista llena");
+                Pausa();
+            }
+        }
+    }
+    fflush(fichImporPelis);
+    fclose(fichImporPelis);
+    *contadorPeliculas=*contadorPeliculas+numPeli;
+    printf("\n\t Se han añadido: %i",numPeli);
+    Pausa();
+}
+
+void devolucion(tRegPelicula Pelicula[200],int *contadorPeliculas)
+{
+    char ID[4];
+    int validacion=0,posicion=0;
+    system("cls");
+    printf("\n\t\t DEVOLUCION\n");
+    printf("\n\t Introduzca el identificador de la pelicula que se devuelve");
+    fflush(stdin);
+    gets(ID);
+    validacion=FormatoIdPeli(ID);
+    if(validacion!=-1)
+    {
+        posicion=buscarPeli(ID,Pelicula,contadorPeliculas);
+        if(posicion!=-1)
+        {
+            if(Pelicula[posicion].disponibilidad.disponible==0)
+            {
+                printf("\n\tERROR: Esta pelicula ya se encuentra diponible");
+                Pausa();
+            }
+            else
+            {
+                Pelicula[posicion].disponibilidad.disponible=0;
+                printf("\n\t se ha cambiado la disponibilidad de la pelicula");
+                Pausa();
+            }
+        }
+    }
+}
+
+//subprograma Opcin2_1/opcion5
+void listados_pelis(tRegPelicula Pelicula[200],int *numPelicula)
+{
+    char Prestado[3];
+
+    system("cls");
+    printf("\n\t\tLISTADO GENERAL DE PELICULA\n");
+    printf("\n\tclave \ttitulo \tDirecto \tPrestado \tSocio");
+    printf("\n\t____________________________________________________________");
+    for(int i=0; i<*numPelicula; i++)
+    {
+        if(Pelicula[i].disponibilidad.disponible==0)
+        {
+            strcpy(Prestado,"SI");
+        }
+        else
+        {
+            strcpy(Prestado,"NO");
+        }
+        printf("\n\t %4s %20s %20s %3s %10s",Pelicula[i].ID,Pelicula[i].titulo,Pelicula[i].director,Prestado,Pelicula[i].disponibilidad.DNI);
+    }
+
+
+}
+
+
+//Borrar cuando se valla a entregar
+//subprogramas para probar que los fichero funciona
+
+void listadoSocios(tRegSocios socios [MAX_SOCIO])
+{
+    for (int i=0; i<50; i++)
+    {
+        printf("\n\n\t socio numero %i", i);
+        mostrarSocios(socios, i);
+    }
+    Pausa();
+}
+
+
+void mostrarSocios2(tRegBajSocios bajaSocios[100],int posicion)
+{
+
+    printf("\n\t\t DATOS SOCIOS HCO %i", posicion);
+    printf("\n\t 0- DNI : \t %s", bajaSocios[posicion].DNI);
+    printf("\n\t 1- Nombre : \t %s", bajaSocios[posicion].nombre);
+    printf("\n\t 2- Apellidos : \t %s", bajaSocios[posicion].apellidos);
+    printf("\n\t 3- Telefono : \t %s", bajaSocios[posicion].telefono);
+    printf("\n\t 4- Fecha 0 (DD/MM/AÑO) : \t %i/%i/%i", bajaSocios[posicion].Fecha[0].dia,bajaSocios[posicion].Fecha[0].mes,bajaSocios[posicion].Fecha[0].ano);
+    printf("\n\t 4- Fecha 1 (DD/MM/AÑO) : \t %i/%i/%i", bajaSocios[posicion].Fecha[1].dia,bajaSocios[posicion].Fecha[1].mes,bajaSocios[posicion].Fecha[1].ano);
+    printf("\n\t 5- Dirección (ciudad/calle/numero): \t %s; %s; %i", bajaSocios[posicion].ciudad, bajaSocios[posicion].calle,bajaSocios[posicion].numDirecc);
+
+
+}
