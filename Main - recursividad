@@ -1,0 +1,586 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+/******************************************************************************
+Alumno 1: Ouakli Boudarene, Meziane
+Alumno 2: Bento da Silva, Washington
+Grupo : 23 - Turno: 2L (lunes de 9-11 h)
+Fecha : 19/05/2020
+******************************************************************************/
+
+typedef struct cadenas
+{
+    char cadena1[30];
+    char cadena2[30];
+    char cadena3[30];
+} tRegCadenas;
+
+
+int menu();
+void MensajeBienvenida();
+void MensajeDespedida();
+void Pausa();
+
+int validarEnteros(int enteros[6], int num);
+void opcion1(tRegCadenas cadenas[1],int enteros1[5],int enteros2[5]);
+void opcion2(tRegCadenas cadenas[1]);
+void opcion3(tRegCadenas cadenas[1]);
+void opcion4(tRegCadenas cadenas[1]);
+void opcion5(int enteros1[5],int enteros2[5]);
+
+int contarApariciones(int num,char caracter,char auxCadenas[30],int contador);
+void cambiarCaracteres(int posicion,char auxCadena[30],char original[30]);
+void reducirCadena(int posicion,char auxCadena[30],char original[30]);
+int ContadorImpares(int num,int vector[5],int contador);
+
+
+
+int main()
+{
+    tRegCadenas cadenas[1];
+    int opcion;
+    int enteros1[5];
+    int enteros2[5];
+
+    MensajeBienvenida();
+    Pausa();
+    for(int i=0; i<5; i++ )
+    {
+        enteros1[i]=0;
+        enteros2[i]=0;
+    }
+    do
+    {
+        opcion=menu();
+
+        switch(opcion)
+        {
+        case 1:
+            opcion1(cadenas,enteros1,enteros2);
+            break;
+        case 2:
+            opcion2(cadenas);
+            break;
+        case 3:
+            opcion3(cadenas);
+            break;
+        case 4:
+            opcion4(cadenas);
+            break;
+        case 5:
+            opcion5(enteros1,enteros2);
+            break;
+        case 0:
+            system("cls");
+            MensajeDespedida();
+            Pausa();
+            break;
+        }
+
+    }
+    while(opcion!=0);
+}
+
+
+int menu()
+{
+    int opcion=0;
+
+    do
+    {
+        system("cls");
+        printf("\n\t\t MENU DE RECURSIVIDAD\n");
+        printf("\t___________________________________-");
+        printf("\n\t 1-Peticion de datos");
+        printf("\n\t 2-Contar Apariciones");
+        printf("\n\t 3-Reemplezar Caracteres");
+        printf("\n\t 4-Eliminar un caracter repetido");
+        printf("\n\t 5-Mostrar Opciones total impares\n");
+        printf("\n\t 0-Salir");
+        printf("\n\t Opcion escogida: \t");
+        scanf("%i",&opcion);
+    }
+    while((opcion<0)||(opcion>5));
+
+    return(opcion);
+}
+
+/***********************************************************************************************************************************************/
+/* Subprograma: MensajeBienvenida.                                                                                                             */
+/* Tipo:Procedimiento (void).                                                                                                                  */
+/* Prerrequisitos:Ninguno.                                                                                                                     */
+/* Objetivo:Da un mensaje de bienvenida al entrar al progama.                                                                                  */
+/* Parametros entrada:                                                                                                                         */
+/* Parametros salida:                                                                                                                          */
+/***********************************************************************************************************************************************/
+
+void MensajeBienvenida()
+{
+    system("cls");
+    printf("\n\n\t\t     ---------------------------------------------------------------\n");
+    printf("\t\t     BIENVENIDO A LA APLICACION DE MEZIANE OUAKLI Y WASHINGTON BENTO\n");
+    printf("\t\t     ---------------------------------------------------------------\n");
+}
+/***********************************************************************************************************************************************/
+/* Subprograma:Despedida.                                                                                                                      */
+/* Tipo:Procedimiento (void).                                                                                                                  */
+/* Prerrequisitos:Ninguno.                                                                                                                     */
+/* Objetivo:Da un mensaje de despedida al cerrar al salir del progama.                                                                         */
+/* Parametros entrada:                                                                                                                         */
+/* Parametros salida:                                                                                                                          */
+/***********************************************************************************************************************************************/
+
+void MensajeDespedida()
+{
+    system("cls");
+    printf("\n\n\t\t     ---------------------------------------------------------------\n");
+    printf("\t\t                GRACIAS POR UTILIZAR NUESTRO PROGRAMA \n");
+    printf("\t\t     ---------------------------------------------------------------\n");
+}
+
+/***********************************************************************************************************************************************/
+/* Subprograma:Pausa                                                                                                                           */
+/* Tipo:Procedimiento (void)                                                                                                                   */
+/* Prerrequisitos:Ninguno                                                                                                                      */
+/* Objetivo:Pausar el progama limpiando pantalla en el proceso                                                                                 */
+/* Parametros entrada:                                                                                                                         */
+/* Parametros salida:                                                                                                                          */
+/***********************************************************************************************************************************************/
+
+void  Pausa()
+{
+    printf("\n\n\t\t PULSE <ENTER> PARA CONTINUAR \t");
+    fflush(stdin);
+    getchar();
+    system ("cls");
+}
+
+
+void opcion1(tRegCadenas cadenas[1],int enteros1[5],int enteros2[5])
+{
+    int validar=0,contador=0,auxx=0,i=0;
+
+    system("cls");
+
+    printf("\n\t\t PETICION DE DATOS\n");
+    printf("\t________________________________\n");
+    printf("\n\t Introduce la cadena de caracteres 1 \t");
+    fflush(stdin);
+    gets(cadenas[0].cadena1);
+    printf("\n\t Introduce la cadena de caracteres 2 \t");
+    fflush(stdin);
+    gets(cadenas[0].cadena2);
+    printf("\n\t Introduce la cadena de caracteres 3 \t");
+    fflush(stdin);
+    gets(cadenas[0].cadena3);
+    contador=0;
+    system("cls");
+    printf("\n\t\t Peticion de datos\n");
+    printf("\t________________________________\n");
+    printf("\n\t Introduce el primer array de enteros");
+    do
+    {
+        printf("\n\t Numero %i: ", contador+1);
+        fflush(stdin);
+        scanf("%i",&auxx);
+        validar=validarEnteros(enteros1,auxx);
+        if(validar==0)
+        {
+            enteros1[contador]=auxx;
+            contador=contador+1;
+        }
+        else
+        {
+            printf("\n\t El numero ya ha sido introducido ");
+            fflush(stdin);
+            getchar();
+        }
+
+    }
+    while(contador<5);
+    contador=0;
+
+    system("cls");
+    printf("\n\t\t Peticion de datos\n");
+    printf("\t________________________________\n");
+    printf("\n\t Introduce el segundo array de enteros");
+    do
+    {
+
+        printf("\n\t Numero %i: ", contador+1);
+        fflush(stdin);
+        scanf("%i",&auxx);
+        if(validar==0)
+        {
+            enteros2[contador]=auxx;
+            contador=contador+1;
+        }
+        else
+        {
+            printf("\n\t El numero ya ha sido introducido ");
+            fflush(stdin);
+            getchar();
+        }
+
+    }
+    while(contador<5);
+
+}
+
+int validarEnteros(int enteros[6], int num)
+{
+    int validar=0;
+    for (int i=0; i<5; i++)
+    {
+        if(enteros[i]==num)
+        {
+            validar=1;
+        }
+    }
+    return(validar);
+}
+//supbprograma recursivo
+//num representa la posicion en char
+int contarApariciones(int posicion,char caracter,char auxCadenas[30],int contador)
+{
+
+    if(posicion==strlen(auxCadenas))
+    {
+        return(contador);
+    }
+    else
+    {
+
+        if(caracter==auxCadenas[posicion])
+        {
+            contador=contador+1;
+
+        }
+        return(contarApariciones(posicion+1,caracter,auxCadenas,contador));
+    }
+}
+
+void opcion2 (tRegCadenas cadenas[1])
+{
+    int opcion=0,validar=0;
+    int contador=0;//para validar que el caracter que introduce sea un caracter
+    char caracter;
+    char auxCadena[30];
+    int num=0;
+
+    do
+    {
+        do
+        {
+            system("cls");
+            printf("\n\t CONTAR APARICIONES\n");
+
+            printf("\n\t 1- Cadena 1: %s", cadenas[0].cadena1);
+            printf("\n\t 2- Cadena 2: %s", cadenas[0].cadena2);
+            printf("\n\t 3- Cadena 3: %s", cadenas[0].cadena3);
+            printf("\n\n\t Elija cadena: \t");
+            scanf("%i",&opcion);
+            printf("\n\t Busca un caracter: \t");
+            fflush(stdin);
+            scanf("%c",&caracter);
+            if((caracter>64)&&(caracter<91))
+            {
+                validar=1;
+            }
+            else
+            {
+                if((caracter>96)&&(caracter<123))
+                {
+                    validar=1;
+                }
+            }
+            if(validar!=1)
+            {
+                printf("\n\t ERROR al introdcuir letra");
+                Pausa();
+            }
+        }
+        while(validar!=1);
+        if((opcion<1)||(opcion>3))
+        {
+            printf("\n\t ERROR al seleccionar cadena");
+            Pausa();
+        }
+    }
+    while((opcion<1)||(opcion>3));
+    switch(opcion)
+    {
+    case 1:
+        strcpy(auxCadena,cadenas[0].cadena1);
+        break;
+    case 2:
+        strcpy(auxCadena,cadenas[0].cadena2);
+        break;
+    case 3:
+        strcpy(auxCadena,cadenas[0].cadena3);
+        break;
+
+    }
+
+    printf("\n\t El caracter '%c' aparece %i veces en la cadena %s", caracter, contarApariciones(num,caracter,auxCadena,contador), auxCadena);
+    Pausa();
+
+}
+
+
+void opcion3(tRegCadenas cadenas[1])
+{
+    int opcion=0,num=0;
+    char auxCadena[30];
+    char original[30];
+
+    do
+    {
+        system("cls");
+        printf("\n\t CAMBIAR CARACTERES\n");
+
+        printf("\n\t 1- Cadena 1: %s", cadenas[0].cadena1);
+        printf("\n\t 2- Cadena 2: %s", cadenas[0].cadena2);
+        printf("\n\t 3- Cadena 3: %s", cadenas[0].cadena3);
+        printf("\n\n\t Elija cadena: \t");
+        scanf("%i",&opcion);
+
+        if((opcion<1)||(opcion>3))
+        {
+            printf("\n\t Error al seleccionar cadena");
+            Pausa();
+        }
+    }
+    while((opcion<1)||(opcion>3));
+    switch(opcion)
+    {
+    case 1:
+        strcpy(auxCadena,cadenas[0].cadena1);
+        break;
+    case 2:
+        strcpy(auxCadena,cadenas[0].cadena2);
+        break;
+    case 3:
+        strcpy(auxCadena,cadenas[0].cadena3);
+        break;
+    }
+    strcpy(original,auxCadena);
+
+    cambiarCaracteres(num,auxCadena,original);
+    Pausa();
+}
+
+void cambiarCaracteres(int posicion,char auxCadena[30],char original[30])
+{
+
+    if(posicion<strlen(auxCadena))
+    {
+        if(auxCadena[posicion]==97)
+        {
+            auxCadena[posicion]=79;
+        }
+        if(auxCadena[posicion]==112)
+        {
+            auxCadena[posicion]=90;
+        }
+        cambiarCaracteres(posicion+1,auxCadena,original);
+
+    }
+    else
+    {
+        printf("\n\t Cadena de caracteres ORIGINAL: %s", original);
+        printf("\n\t Cadena de caracteres MODIFICADA: %s",auxCadena);
+    }
+}
+
+
+void opcion4(tRegCadenas cadenas[1])
+{
+    int opcion=0;
+    char auxCadena[30];
+    char original[30];
+    int posicion=0;
+
+    do
+    {
+        system("cls");
+        printf("\n\t REDUCIR CADENA\n");
+
+        printf("\n\t 1- cadena 1: %s", cadenas[0].cadena1);
+        printf("\n\t 2- cadena 2: %s", cadenas[0].cadena2);
+        printf("\n\t 3- cadena 3: %s", cadenas[0].cadena3);
+        printf("\n\n\t ¿Que cadena desa utilizar? : \t");
+        scanf("%i",&opcion);
+
+        if((opcion<1)||(opcion>3))
+        {
+            printf("\n\t Error al introducir el numero de la opcion");
+            Pausa();
+        }
+    }
+    while((opcion<1)||(opcion>3));
+    switch(opcion)
+    {
+    case 1:
+        strcpy(auxCadena,cadenas[0].cadena1);
+        break;
+    case 2:
+        strcpy(auxCadena,cadenas[0].cadena2);
+        break;
+    case 3:
+        strcpy(auxCadena,cadenas[0].cadena3);
+        break;
+
+    }
+
+    strcpy(original,auxCadena);
+    reducirCadena(posicion,auxCadena,original);
+
+    Pausa();
+}
+
+void reducirCadena(int posicion,char auxCadena[30],char original[30])
+{
+    if(posicion<strlen(auxCadena))
+    {
+        if(auxCadena[posicion]==auxCadena[posicion+1])
+        {
+            for(int i=posicion; i<strlen(auxCadena); i++)
+            {
+                auxCadena[i]=auxCadena[i+1];
+            }
+            reducirCadena(posicion, auxCadena, original);
+        }
+        else
+        {
+            reducirCadena(posicion+1, auxCadena, original);
+        }
+    }
+    else
+    {
+        printf("\n\t La Cadena de Caracteres ORIGINAL : %s",original);
+        printf("\n\t La Cadena de Caracteres REDUCIDA : %s",auxCadena);
+    }
+}
+
+
+
+void opcion5(int enteros1[5],int enteros2[5])
+{
+    int opcion=0,num=0,contador=0,aux=-1;
+    do
+    {
+        system("cls");
+        printf("\n\t CONTAR IMPARES\n");
+        printf("\n\t 1-Vector enteros 1: \t");
+        for(int i=0; i<5; i++)
+        {
+            printf("%i, ", enteros1[i]);
+
+        }
+        printf("\n\t 2-Vector enteros 2: \t");
+        for(int i=0; i<5; i++)
+        {
+            printf("%i, ", enteros2[i]);
+        }
+
+        printf("\n\t Escoja vector\t");
+        scanf("%i", &opcion);
+    }
+    while((opcion<1)||(opcion>2));
+
+    if(opcion==1)
+    {
+        contador=ContadorImpares(num,enteros1,contador);
+        if(contador!=0)
+        {
+            printf("\n\t Array considerado  \t");
+
+            for(int i=0; i<5; i++)
+            {
+                printf("%i, ", enteros1[i]);
+                if(enteros1[i]==contador)
+                {
+                    aux=i;
+
+                }
+
+            }
+
+            if(aux==-1)
+            {
+                printf("\n\t No se ha encontrado el elemento ");
+                printf("\n\t Numero total de elementos impares: %i", contador);
+
+            }
+            else
+            {
+                printf("\n\t Numero total de elementos impares: %i", contador);
+                printf("\n\t Elemento %i se ha encontrado en la posicion %i del array", contador, aux+1);
+            }
+
+
+
+        }
+        else
+        {
+            printf("\n\t No se ha encontrado ningun numero impar");
+        }
+
+    }
+    else
+    {
+        contador=ContadorImpares(num,enteros2,contador);
+        if(contador!=0)
+        {
+            printf("\n\t Array considerado  \t");
+
+            for(int i=0; i<5; i++)
+            {
+                printf("%i, ", enteros2[i]);
+                if(enteros2[i]==contador)
+                {
+                    aux=i;
+
+                }
+
+            }
+
+            if(aux==0)
+            {
+                printf("\n\t No se ha encontrado el elemento ");
+                printf("\n\t Numero total de elementos impares: %i", contador);
+
+            }
+            else
+            {
+                printf("\n\t Numero total de elementos impares: %i", contador);
+                printf("\n\t Elemento %i se ha encontrado en la posicion %i del array", contador, aux+1);
+            }
+        }
+        else
+        {
+            printf("\n\t No se ha encontrado ningun impar");
+        }
+    }
+
+    Pausa();
+
+}
+
+int ContadorImpares(int num,int vector[5],int contador)
+{
+    if(num>5)
+    {
+        return contador;
+    }
+    else
+    {
+        if((vector[num]%2)!=0)
+        {
+            contador=contador+1;
+        }
+        return(ContadorImpares(num+1,vector,contador));
+    }
+}
