@@ -1,0 +1,672 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+/******************************************************************************
+Alumno 1: Ouakli Boudarene, Meziane
+Alumno 2: Bento da Silva, Washington
+Grupo : 23 - Turno: 2L (lunes de 9-11 h)
+Fecha : 17/05/2020
+******************************************************************************/
+
+typedef struct cadenas
+{
+    char cadena1[30];
+    char cadena2[30];
+    char cadena3[30];
+} tRegCadenas;
+
+
+
+void MensajeBienvenida();
+void MensajeDespedida();
+void Pausa();
+
+void opcion1(tRegCadenas cadenas[1],int enteros1[5],int enteros2[5]);
+void opcion2(tRegCadenas cadenas[1]);
+void opcion3(tRegCadenas cadenas[1]);
+void opcion4(tRegCadenas cadenas[1]);
+void opcion5(int enteros1[5],int enteros2[5]);
+
+int validarEnteros(int enteros[6], int num);
+int contarApariciones(int posicion,char caracter,char cadenas[30]);
+void cambiarCaracteres(int posicion,char cadena[30],char original[30]);
+void reducirCadena(int posicion,char cadena[30],char original[30]);
+int contarImpares(int posicion,int vector[5]);
+
+
+
+int main()
+{
+    int opcion;
+    int enteros1[5];
+    int enteros2[5];
+    tRegCadenas cadenas[1];
+
+    MensajeBienvenida();
+    Pausa();
+
+    for(int i=0; i<5; i++ )
+    {
+        enteros1[i]=0;
+        enteros2[i]=0;
+    }
+    do
+    {
+        do
+        {
+            system("cls");
+            printf("\n\t\t MENU DE RECURSIVIDAD\n");
+            printf("\t___________________________________-");
+            printf("\n\t 1-Peticion de datos");
+            printf("\n\t 2-Contar Apariciones");
+            printf("\n\t 3-Reemplezar Caracteres");
+            printf("\n\t 4-Eliminar un caracter repetido");
+            printf("\n\t 5-Mostrar Opciones total impares\n");
+            printf("\n\t 0-Salir");
+            printf("\n\t Opcion escogida: \t");
+            scanf("%i",&opcion);
+        }
+        while((opcion<0)||(opcion>5));
+
+        switch(opcion)
+        {
+        case 1:
+            opcion1(cadenas,enteros1,enteros2);
+            break;
+        case 2:
+            opcion2(cadenas);
+            break;
+        case 3:
+            opcion3(cadenas);
+            break;
+        case 4:
+            opcion4(cadenas);
+            break;
+        case 5:
+            opcion5(enteros1,enteros2);
+            break;
+        case 0:
+            MensajeDespedida();
+            Pausa();
+            break;
+        }
+
+    }
+    while(opcion!=0);
+}
+
+
+/***********************************************************************************************************************************************/
+/* Subprograma: MensajeBienvenida.                                                                                                             */
+/* Tipo:Procedimiento (void).                                                                                                                  */
+/* Prerrequisitos:Ninguno.                                                                                                                     */
+/* Objetivo:Da un mensaje de bienvenida al entrar al progama.                                                                                  */
+/* Parametros entrada:                                                                                                                         */
+/* Parametros salida:                                                                                                                          */
+/***********************************************************************************************************************************************/
+
+void MensajeBienvenida()
+{
+    system("cls");
+    printf("\n\n\t\t     ---------------------------------------------------------------\n");
+    printf("\t\t     BIENVENIDO A LA APLICACION DE MEZIANE OUAKLI Y WASHINGTON BENTO\n");
+    printf("\t\t     ---------------------------------------------------------------\n");
+}
+/***********************************************************************************************************************************************/
+/* Subprograma:Despedida.                                                                                                                      */
+/* Tipo:Procedimiento (void).                                                                                                                  */
+/* Prerrequisitos:Ninguno.                                                                                                                     */
+/* Objetivo:Da un mensaje de despedida al cerrar al salir del progama.                                                                         */
+/* Parametros entrada:                                                                                                                         */
+/* Parametros salida:                                                                                                                          */
+/***********************************************************************************************************************************************/
+
+void MensajeDespedida()
+{
+    system("cls");
+    printf("\n\n\t\t     ---------------------------------------------------------------\n");
+    printf("\t\t                GRACIAS POR UTILIZAR NUESTRO PROGRAMA \n");
+    printf("\t\t     ---------------------------------------------------------------\n");
+}
+
+/***********************************************************************************************************************************************/
+/* Subprograma:Pausa                                                                                                                           */
+/* Tipo:Procedimiento (void)                                                                                                                   */
+/* Prerrequisitos:Ninguno                                                                                                                      */
+/* Objetivo:Pausar el progama limpiando pantalla en el proceso                                                                                 */
+/* Parametros entrada:                                                                                                                         */
+/* Parametros salida:                                                                                                                          */
+/***********************************************************************************************************************************************/
+
+void  Pausa()
+{
+    printf("\n\n\t\t PULSE <ENTER> PARA CONTINUAR \t");
+    fflush(stdin);
+    getchar();
+    system ("cls");
+}
+
+
+/***********************************************************************************************************************************************/
+/* Subprograma:opcion1                                                                                                                         */
+/* Tipo:Procedimiento (void)                                                                                                                   */
+/* Prerrequisitos:Ninguno                                                                                                                      */
+/* Objetivo:Pedir al usuario 3 cadenas de caracteres y 10 numeros enteros que se almacenaran para su futuro uso                                */
+/* Parametros entrada:cadenas,enteros1,enteros2                                                                                                */
+/* Parametros salida:Ninguno                                                                                                                   */
+/***********************************************************************************************************************************************/
+
+void opcion1(tRegCadenas cadenas[1],int enteros1[5],int enteros2[5])
+{
+    int validar=0,contador=0,auxx=0,i=0;
+
+    system("cls");
+
+    printf("\n\t\t PETICION DE DATOS\n");
+    printf("\t________________________________\n");
+    printf("\n\t Introduce la cadena de caracteres 1 \t");
+    fflush(stdin);
+    gets(cadenas[0].cadena1);
+    printf("\n\t Introduce la cadena de caracteres 2 \t");
+    fflush(stdin);
+    gets(cadenas[0].cadena2);
+    printf("\n\t Introduce la cadena de caracteres 3 \t");
+    fflush(stdin);
+    gets(cadenas[0].cadena3);
+    contador=0;
+    system("cls");
+    printf("\n\t\t Peticion de datos\n");
+    printf("\t________________________________\n");
+    printf("\n\t Introduce el primer array de enteros");
+    do
+    {
+        printf("\n\t Numero %i: ", contador+1);
+        fflush(stdin);
+        scanf("%i",&auxx);
+        validar=validarEnteros(enteros1,auxx);
+        if(validar==0)
+        {
+            enteros1[contador]=auxx;
+            contador=contador+1;
+        }
+        else
+        {
+            printf("\n\t El numero ya ha sido introducido ");
+            fflush(stdin);
+            getchar();
+        }
+
+    }
+    while(contador<5);
+    contador=0;
+
+    system("cls");
+    printf("\n\t\t Peticion de datos\n");
+    printf("\t________________________________\n");
+    printf("\n\t Introduce el segundo array de enteros");
+    do
+    {
+
+        printf("\n\t Numero %i: ", contador+1);
+        fflush(stdin);
+        scanf("%i",&auxx);
+        if(validar==0)
+        {
+            enteros2[contador]=auxx;
+            contador=contador+1;
+        }
+        else
+        {
+            printf("\n\t El numero ya ha sido introducido ");
+            fflush(stdin);
+            getchar();
+        }
+
+    }
+    while(contador<5);
+
+}
+
+
+/***********************************************************************************************************************************************/
+/* Subprograma:validarEnteros                                                                                                                  */
+/* Tipo:Funcion (int) RECURSIVO                                                                                                                         */
+/* Prerrequisitos:Ninguno                                                                                                                      */
+/* Objetivo:Comprueba si se cumple el formato establecido                                                                                      */
+/* Parametros entrada:enteros,num                                                                                                              */
+/* Parametros salida:validar                                                                                                                   */
+/***********************************************************************************************************************************************/
+
+int validarEnteros(int enteros[6], int num)
+{
+    int validar=0;
+    for (int i=0; i<5; i++)
+    {
+        if(enteros[i]==num)
+        {
+            validar=1;
+        }
+    }
+    return(validar);
+}
+
+/***********************************************************************************************************************************************/
+/* Subprograma:opcion2                                                                                                                         */
+/* Tipo:Procedimiento (void)                                                                                                                   */
+/* Prerrequisitos:Haber ingresado los arrays en la opcion1                                                                                     */
+/* Objetivo:Mostrar el numero de veces que aparece un caracter en uno de los arrays introducidos                                               */
+/* Parametros entrada:tRegCadenas cadenas                                                                                                      */
+/* Parametros salida:Ninguno                                                                                                                   */
+/***********************************************************************************************************************************************/
+
+void opcion2(tRegCadenas cadenas[1])
+{
+    int opcion=0,validar=0;
+    char caracter;
+    char cadena[30];
+    int posicion=0;
+
+    do
+    {
+        do
+        {
+            system("cls");
+            printf("\n\t CONTAR APARICIONES\n");
+
+            printf("\n\t 1- Cadena 1: %s", cadenas[0].cadena1);
+            printf("\n\t 2- Cadena 2: %s", cadenas[0].cadena2);
+            printf("\n\t 3- Cadena 3: %s", cadenas[0].cadena3);
+            printf("\n\n\t Elija cadena: \t");
+            scanf("%i",&opcion);
+            printf("\n\t Elija un caracter: \t");
+            fflush(stdin);
+            scanf("%c",&caracter);
+
+            if((caracter>64)&&(caracter<91))
+            {
+                validar=1;
+            }
+            else
+            {
+                if((caracter>96)&&(caracter<123))
+                {
+                    validar=1;
+                }
+            }
+
+            if(validar!=1)
+            {
+                printf("\n\t ERROR al introdcuir letra");
+                Pausa();
+            }
+        }
+        while(validar!=1);
+        if((opcion<1)||(opcion>3))
+        {
+            printf("\n\t ERROR al seleccionar cadena");
+            Pausa();
+        }
+    }
+    while((opcion<1)||(opcion>3));
+    switch(opcion)
+    {
+    case 1:
+        strcpy(cadena,cadenas[0].cadena1);
+        break;
+    case 2:
+        strcpy(cadena,cadenas[0].cadena2);
+        break;
+    case 3:
+        strcpy(cadena,cadenas[0].cadena3);
+        break;
+
+    }
+
+    printf("\n\t El caracter %c aparece %i veces en la cadena %s", caracter, contarApariciones(posicion,caracter,cadena), cadena);
+    Pausa();
+
+}
+
+
+/***********************************************************************************************************************************************/
+/* Subprograma:contarApariciones                                                                                                               */
+/* Tipo:Funcion (int) RECURSIVO                                                                                                                         */
+/* Prerrequisitos:Ninguno                                                                                                                      */
+/* Objetivo:Cuenta el numero de apariciones de un caracter en un array                                                                         */
+/* Parametros entrada:posicion,caracter,cadenas                                                                                   */
+/* Parametros salida:contador                                                                */
+/***********************************************************************************************************************************************/
+
+int contarApariciones(int posicion,char caracter,char cadenas[30])
+{
+    int contador=0;
+    if(posicion==strlen(cadenas))
+    {
+        return(contador=0);
+    }
+    else
+    {
+
+        if(caracter==cadenas[posicion])
+        {
+            contador=(contarApariciones(posicion+1,caracter,cadenas))+1;
+
+        }else{
+            contador=(contarApariciones(posicion+1,caracter,cadenas));
+        }
+        return(contador);
+    }
+}
+
+
+
+/***********************************************************************************************************************************************/
+/* Subprograma:opcion3                                                                                                                         */
+/* Tipo:Procedimiento (void)                                                                                                                   */
+/* Prerrequisitos:Haber ingresado los arrays en la opcion1                                                                                     */
+/* Objetivo:Pedir un caracter de una cadena ya introducida y cambiar todas las instancias de una letra de esa cadena por otra introducida por  */
+/*          el usuario con la ayuda del subprogama cambiarcaracteres                                                                           */
+/* Parametros entrada:tRegCadenas cadenas                                                                                                      */
+/* Parametros salida:Ninguno                                                                                                                   */
+/***********************************************************************************************************************************************/
+
+void opcion3(tRegCadenas cadenas[1])
+{
+    int opcion=0,posicion=0;
+    char cadena[30];
+    char original[30];
+
+    do
+    {
+        system("cls");
+        printf("\n\t CAMBIAR CARACTERES\n");
+
+        printf("\n\t 1- Cadena 1: %s", cadenas[0].cadena1);
+        printf("\n\t 2- Cadena 2: %s", cadenas[0].cadena2);
+        printf("\n\t 3- Cadena 3: %s", cadenas[0].cadena3);
+        printf("\n\n\t Elija cadena: \t");
+        scanf("%i",&opcion);
+
+        if((opcion<1)||(opcion>3))
+        {
+            printf("\n\t Error al seleccionar cadena");
+            Pausa();
+        }
+    }
+    while((opcion<1)||(opcion>3));
+    switch(opcion)
+    {
+    case 1:
+        strcpy(cadena,cadenas[0].cadena1);
+        break;
+    case 2:
+        strcpy(cadena,cadenas[0].cadena2);
+        break;
+    case 3:
+        strcpy(cadena,cadenas[0].cadena3);
+        break;
+    }
+    strcpy(original,cadena);
+
+    cambiarCaracteres(posicion,cadena,original);
+    Pausa();
+}
+
+/***********************************************************************************************************************************************/
+/* Subprograma:cambiarCaracteres                                                                                                               */
+/* Tipo:Procedimiento (void)   RECURSIVO                                                                                                                */
+/* Prerrequisitos:Tener almacenado un array para ser modificado                                                                                */
+/* Objetivo:Cambia un caracter de un array ya establecido previamente                                                                          */
+/* Parametros entrada:posicion,cadena,original                                                                                              */
+/* Parametros salida:Ninguno                                                                                                                   */
+/***********************************************************************************************************************************************/
+
+void cambiarCaracteres(int posicion,char cadena[30],char original[30])
+{
+
+    if(posicion<strlen(cadena))
+    {
+        if(cadena[posicion]==97)
+        {
+            cadena[posicion]=79;
+        }
+        if(cadena[posicion]==112)
+        {
+            cadena[posicion]=90;
+        }
+        cambiarCaracteres(posicion+1,cadena,original);
+
+    }
+    else
+    {
+        printf("\n\t Cadena de caracteres ORIGINAL: %s", original);
+        printf("\n\t Cadena de caracteres MODIFICADA: %s",cadena);
+    }
+}
+
+
+/***********************************************************************************************************************************************/
+/* Subprograma:opcion4                                                                                                                         */
+/* Tipo:Procedimiento (void)                                                                                                                   */
+/* Prerrequisitos:Tener almacenado un array para ser modificado                                                                                */
+/* Objetivo:elimina de la cadena anterior la primera aparición de  aquellos caracteres que aparecen al menos dos veces seguidas en ella        */
+/* Parametros entrada:tRegCadenas cadenas                                                                                                      */
+/* Parametros salida:Ninguno                                                                                                                   */
+/***********************************************************************************************************************************************/
+
+void opcion4(tRegCadenas cadenas[1])
+{
+    int opcion=0;
+    char cadena[30];
+    char original[30];
+    int posicion=0;
+
+    do
+    {
+        system("cls");
+        printf("\n\t REDUCIR CADENA\n");
+
+        printf("\n\t 1- Cadena 1: %s", cadenas[0].cadena1);
+        printf("\n\t 2- Cadena 2: %s", cadenas[0].cadena2);
+        printf("\n\t 3- Cadena 3: %s", cadenas[0].cadena3);
+        printf("\n\n\t Elija cadena : \t");
+        scanf("%i",&opcion);
+
+        if((opcion<1)||(opcion>3))
+        {
+            printf("\n\t Error al seleccionar cadena");
+            Pausa();
+        }
+    }
+    while((opcion<1)||(opcion>3));
+    switch(opcion)
+    {
+    case 1:
+        strcpy(cadena,cadenas[0].cadena1);
+        break;
+    case 2:
+        strcpy(cadena,cadenas[0].cadena2);
+        break;
+    case 3:
+        strcpy(cadena,cadenas[0].cadena3);
+        break;
+
+    }
+
+    strcpy(original,cadena);
+    reducirCadena(posicion,cadena,original);
+
+    Pausa();
+}
+
+
+/***********************************************************************************************************************************************/
+/* Subprograma:reducirCadena                                                                                                                   */
+/* Tipo:Procedimiento (void)   RECURSIVO                                                                                                                */
+/* Prerrequisitos:Tener almacenado un array para ser modificado                                                                                */
+/* Objetivo:Progama auxiliar de la opcion4 la cual hace el procedimiento ya mencionado anteriormente                                           */
+/* Parametros entrada:posicion,cadena,original                                                                                              */
+/* Parametros salida:Ninguno                                                                                                                   */
+/***********************************************************************************************************************************************/
+
+void reducirCadena(int posicion,char cadena[30],char original[30])
+{
+    if(posicion<strlen(cadena))
+    {
+        if(cadena[posicion]==cadena[posicion+1])
+        {
+            for(int i=posicion; i<strlen(cadena); i++)
+            {
+                cadena[i]=cadena[i+1];
+            }
+            reducirCadena(posicion, cadena, original);
+        }
+        else
+        {
+            reducirCadena(posicion+1, cadena, original);
+        }
+    }
+    else
+    {
+        printf("\n\t La Cadena de Caracteres ORIGINAL : %s",original);
+        printf("\n\t La Cadena de Caracteres REDUCIDA : %s",cadena);
+    }
+}
+
+
+/***********************************************************************************************************************************************/
+/* Subprograma:reducirCadena                                                                                                                   */
+/* Tipo:Procedimiento (void)                                                                                                                   */
+/* Prerrequisitos:Ninguno                                                                                                                      */
+/* Objetivo:Solicita al usuario que elija un array de vectores para contar los impares y para encontrar el elemento                            */
+/* Parametros entrada:enteros1,enteros2                                                                                                        */
+/* Parametros salida:Ninguno                                                                                                                   */
+/***********************************************************************************************************************************************/
+
+void opcion5(int enteros1[5],int enteros2[5])
+{
+    int opcion=0,posicion=0,contador=0,aux=-1;
+    do
+    {
+        system("cls");
+        printf("\n\t CONTAR IMPARES\n");
+        printf("\n\t 1-Vector enteros 1: \t");
+        for(int i=0; i<5; i++)
+        {
+            printf("%i, ", enteros1[i]);
+
+        }
+        printf("\n\t 2-Vector enteros 2: \t");
+        for(int i=0; i<5; i++)
+        {
+            printf("%i, ", enteros2[i]);
+        }
+
+        printf("\n\t Escoja vector:\t");
+        scanf("%i", &opcion);
+    }
+    while((opcion<1)||(opcion>2));
+
+    if(opcion==1)
+    {
+        contador=contarImpares(posicion,enteros1);
+        if(contador!=0)
+        {
+            printf("\n\t Array considerado  \t");
+
+            for(int i=0; i<5; i++)
+            {
+                printf("%i, ", enteros1[i]);
+                if(enteros1[i]==contador)
+                {
+                    aux=i;
+                }
+            }
+            if(aux==-1)
+            {
+                printf("\n\t No se ha encontrado el elemento ");
+                printf("\n\t Numero total de elementos impares: %i", contador);
+
+            }
+            else
+            {
+                printf("\n\t Numero total de elementos impares: %i", contador);
+                printf("\n\t Elemento %i se ha encontrado en la posicion %i del array", contador, aux);
+            }
+        }
+        else
+        {
+            printf("\n\t No se ha encontrado ningun numero impar");
+        }
+
+    }
+    else
+    {
+        contador=contarImpares(posicion,enteros2);
+        if(contador!=0)
+        {
+            printf("\n\t Array considerado  \t");
+
+            for(int i=0; i<5; i++)
+            {
+                printf("%i, ", enteros2[i]);
+                if(enteros2[i]==contador)
+                {
+                    aux=i;
+
+                }
+
+            }
+
+            if(aux==0)
+            {
+                printf("\n\t No se ha encontrado el elemento ");
+                printf("\n\t Numero total de elementos impares: %i", contador);
+
+            }
+            else
+            {
+                printf("\n\t Numero total de elementos impares: %i", contador);
+                printf("\n\t Elemento %i se ha encontrado en la posicion %i del array", contador, aux);
+            }
+        }
+        else
+        {
+            printf("\n\t No se ha encontrado ningun impar");
+        }
+    }
+
+    Pausa();
+}
+
+
+/***********************************************************************************************************************************************/
+/* Subprograma:ContadorImpares                                                                                                                 */
+/* Tipo:funcion (INT)                                                                                                                          */
+/* Prerrequisitos:Ninguno                                                                                                                      */
+/* Objetivo:Buscar en el array de enteros los impares y aumentar el contador cada vez que encuentre uno                                        */
+/* Parametros entrada:posicion,vector                                                                                                      */
+/* Parametros salida:contador                                                                                      */
+/***********************************************************************************************************************************************/
+
+int contarImpares(int posicion,int vector[5])
+{
+    int contador;
+    if(posicion==5)
+    {
+        return (contador=0);
+    }
+    else
+    {
+        if((vector[posicion]%2)!=0)
+        {
+            contador=(contarImpares(posicion+1,vector))+1;
+        }
+        else
+        {
+            contador=contarImpares(posicion+1,vector);
+        }
+        return(contador);
+    }
+}
